@@ -1,24 +1,38 @@
-﻿
+﻿/////////////////////////////////////////////////////////////////////////
+//
+// This module contains code to do Kinect NUI initialization,
+// processing, displaying players on screen, and sending updated player
+// positions to the game portion for hit testing.
+//
+// Copyright © Microsoft Corporation.  All rights reserved.  
+// This code is licensed under the terms of the 
+// Microsoft Kinect for Windows SDK (Beta) 
+// License Agreement: http://kinectforwindows.org/KinectSDK-ToU
+//
+/////////////////////////////////////////////////////////////////////////
 using System;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Shapes;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Linq;
-using System.Threading;
 using System.Media;
-using System.Text;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Threading;
+using Microsoft.Research.Kinect.Audio;
 using Microsoft.Research.Kinect.Nui;
-using Coding4Fun.Kinect.Wpf;
-using NetGame;
 using NetGame.Speech;
 using NetGame.Utils;
+using NetGame;
+using ShoopDoup;
 
-namespace ShoopDoup.ViewControllers
+
+namespace NetGame
 {
-    class NetGameController : SceneController
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    /// 
+    public partial class NetGameWindow : Window
     {
         #region Private State
         const int TimerResolution = 2;  // ms
@@ -56,57 +70,19 @@ namespace ShoopDoup.ViewControllers
 
         RuntimeOptions runtimeOptions;
         SpeechRecognizer speechRecognizer = null;
-        private System.Windows.Controls.Canvas playfield;
-        System.Windows.Shapes.Line myNet = null;
-
-
         #endregion Private State
 
-        public NetGameController()
+        #region ctor + Window Events
+        public NetGameWindow()
         {
-            //InitState();
-            playfield = new Canvas();
-            playfield.ClipToBounds = true;
-            playfield.Background = Brushes.Azure;
-            mainGrid.Children.Add(playfield);
-
-            fallingThings = new FallingThings(MaxShapes, targetFramerate, NumIntraFrames);
-            fallingThings.DrawFrame(playfield.Children);
-
-            //UpdatePlayfieldSize();
-
-            fallingThings.SetGravity(dropGravity);
-            fallingThings.SetDropRate(dropRate);
-            fallingThings.SetSize(dropSize);
-            fallingThings.SetPolies(PolyType.All);
-            fallingThings.SetGameMode(FallingThings.GameMode.Off);
-
-            myNet.Stroke = System.Windows.Media.Brushes.LightSteelBlue;
-            myNet.StrokeThickness = 2;
-            playfield.Children.Add(myNet);
-
-            /*popSound.Stream = Properties.Resources.Pop_5;
-            hitSound.Stream = null;
-            squeezeSound.Stream = Properties.Resources.Squeeze;
-
-            popSound.Play();
-
-            Win32Timer.timeBeginPeriod(TimerResolution);
-            var gameThread = new Thread(GameThread);
-            gameThread.SetApartmentState(ApartmentState.STA);
-            gameThread.Start();*/
-
-            FlyingText.NewFlyingText(screenRect.Width / 30, new Point(screenRect.Width / 2, screenRect.Height / 2), "Shapes!");
+            InitializeComponent();
+            RestoreWindowState();
         }
-    }
-}
-
-        /*#region ctor + Window Events
 
         private void RestoreWindowState()
         {
             // Restore window state to that last used
-            Rect bounds = Properties.Settings.Default.PrevWinPosition;
+            Rect bounds = ShoopDoup.Properties.Settings.Default.PrevWinPosition;
             if (bounds.Right != bounds.Left)
             {
                 this.Top = bounds.Top;
@@ -114,84 +90,284 @@ namespace ShoopDoup.ViewControllers
                 this.Height = bounds.Height;
                 this.Width = bounds.Width;
             }
-            this.WindowState = (WindowState)Properties.Settings.Default.WindowState;
+            this.WindowState = (WindowState)ShoopDoup.Properties.Settings.Default.WindowState;
+        }
+
+        private void Window_Loaded(object sender, EventArgs e)
+        {
+            playfield.ClipToBounds = true;
+
+            fallingThings = new FallingThings(MaxShapes, targetFramerate, NumIntraFrames);
+
+            UpdatePlayfieldSize();
+
+            fallingThings.SetGravity(dropGravity);
+            fallingThings.SetDropRate(dropRate);
+            fallingThings.SetSize(dropSize);
+            fallingThings.SetPolies(PolyType.All);
+            fallingThings.SetGameMode(FallingThings.GameMode.Off);
+
+            KinectStart();
+
+            popSound.Stream = ShoopDoup.Properties.Resources.Pop_5;
+            hitSound.Stream = null;
+            squeezeSound.Stream = ShoopDoup.Properties.Resources.Squeeze;
+
+            popSound.Play();
+
+            Win32Timer.timeBeginPeriod(TimerResolution);
+            var gameThread = new Thread(GameThread);
+            gameThread.SetApartmentState(ApartmentState.STA);
+            gameThread.Start();
+
+            FlyingText.NewFlyingText(screenRect.Width / 30, new Point(screenRect.Width / 2, screenRect.Height / 2), "Shapes!");
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             runningGameThread = false;
-            Properties.Settings.Default.PrevWinPosition = this.RestoreBounds;
-            Properties.Settings.Default.WindowState = (int)this.WindowState;
-            Properties.Settings.Default.Save();
+            ShoopDoup.Properties.Settings.Default.PrevWinPosition = this.RestoreBounds;
+            ShoopDoup.Properties.Settings.Default.WindowState = (int)this.WindowState;
+            ShoopDoup.Properties.Settings.Default.Save();
         }
 
         private void Window_Closed(object sender, EventArgs e)
         {
             KinectStop();
         }
-        #endregion ctor + Window Events*/
+        #endregion ctor + Window Events
 
-        
-       /* #region Kinect Skeleton processing
-        public override void updateSkeletons(SkeletonFrame allSkeletons)
+        #region Kinect discovery + setup
+
+        /* To add Kinect support, an app can:
+         *   copy the entire "Kinect discovery + setup" region into your app's code file.
+         *   call KinectStart() from Window loaded.
+         *   call KinectStop() from Window closed.
+         *   modify ShowStatus method to display app specific feedback to the user for each of the conditions.
+         *   modify Initialize/UnitializeKinectServices for your app.
+         */
+
+        //Kinect enabled apps should customize each message and replace the technique of displaying the message.
+        private void ShowStatus(ErrorCondition errorCondition)
         {
-            //KinectSDK TODO: This nullcheck shouldn't be required. 
-            //Unfortunately, this version of the Kinect Runtime will continue to fire some skeletonFrameReady events after the Kinect USB is unplugged.
-            /*if (allSkeletons == null)
+            string statusMessage;
+            switch (errorCondition)
             {
-                return;
+                case ErrorCondition.None:
+                    statusMessage = null;
+                    break;
+                case ErrorCondition.NoKinect:
+                    statusMessage = ShoopDoup.Properties.Resources.NoKinectError;
+                    break;
+                case ErrorCondition.NoPower:
+                    statusMessage = ShoopDoup.Properties.Resources.NoPowerError;
+                    break;
+                case ErrorCondition.NoSpeech:
+                    statusMessage = ShoopDoup.Properties.Resources.NoSpeechError;
+                    break;
+                case ErrorCondition.NotReady:
+                    statusMessage = ShoopDoup.Properties.Resources.NotReady;
+                    break;
+                case ErrorCondition.KinectAppConflict:
+                    statusMessage = ShoopDoup.Properties.Resources.KinectAppConflict;
+                    break;
+                default:
+                    throw new NotImplementedException("ErrorCondition." + errorCondition.ToString() + " needs a handler in ShowStatus()");
             }
-            
-            SkeletonData skeleton = (from s in allSkeletons.Skeletons
-                                     where s.TrackingState == SkeletonTrackingState.Tracked
-                                     select s).FirstOrDefault();
-            myNet.X1 = skeleton.Joints[JointID.HandLeft].Position.X;
-            myNet.X2 = skeleton.Joints[JointID.HandRight].Position.X;
-            myNet.Y1 = skeleton.Joints[JointID.HandLeft].Position.X;
-            myNet.Y2 = skeleton.Joints[JointID.HandRight].Position.X;
+            BannerText.NewBanner(statusMessage, screenRect, false, Color.FromArgb(90, 255, 255, 255));
+            currentErrorCondition = errorCondition;
+        }
 
+        //Kinect enabled apps should customize which Kinect services it initializes here.
+        private void InitializeKinectServices(Runtime runtime)
+        {
+            runtimeOptions = RuntimeOptions.UseDepthAndPlayerIndex | RuntimeOptions.UseSkeletalTracking | RuntimeOptions.UseColor;
 
-          
-
-            int iSkeletonSlot = 0;
-
-            foreach (SkeletonData data in allSkeletons.Skeletons)
+            //KinectSDK TODO: should be able to understand a Kinect used by another app without having to try/catch.
+            try
             {
-                if (SkeletonTrackingState.Tracked == data.TrackingState)
+                Kinect.Initialize(runtimeOptions);
+            }
+            catch (COMException comException)
+            {
+                //TODO: make CONST
+                if (comException.ErrorCode == -2147220947)  //Runtime is being used by another app.
                 {
-                    Player player;
-                    if (players.ContainsKey(iSkeletonSlot))
+                    Kinect = null;
+                    ShowStatus(ErrorCondition.KinectAppConflict);
+                    return;
+                }
+                else
+                {
+                    throw comException;
+                }
+            }
+
+            kinectViewer.RuntimeOptions = runtimeOptions;
+            kinectViewer.Kinect = Kinect;
+
+            Kinect.SkeletonEngine.TransformSmooth = true;
+            Kinect.SkeletonFrameReady += new EventHandler<SkeletonFrameReadyEventArgs>(SkeletonsReady);
+
+            speechRecognizer = SpeechRecognizer.Create();         //returns null if problem with speech prereqs or instantiation.
+            if (speechRecognizer != null)
+            {
+                speechRecognizer.Start(new KinectAudioSource());  //KinectSDK TODO: expose Runtime.AudioSource to return correct audiosource.
+                speechRecognizer.SaidSomething += new EventHandler<SpeechRecognizer.SaidSomethingEventArgs>(recognizer_SaidSomething);
+            }
+            else
+            {
+                ShowStatus(ErrorCondition.NoSpeech);
+                speechRecognizer = null;
+            }
+        }
+
+        //Kinect enabled apps should uninitialize all Kinect services that were initialized in InitializeKinectServices() here.
+        private void UninitializeKinectServices(Runtime runtime)
+        {
+            Kinect.Uninitialize();
+
+            kinectViewer.Kinect = null;
+
+            Kinect.SkeletonFrameReady -= new EventHandler<SkeletonFrameReadyEventArgs>(SkeletonsReady);
+
+            if (speechRecognizer != null)
+            {
+                speechRecognizer.Stop();
+                speechRecognizer.SaidSomething -= new EventHandler<SpeechRecognizer.SaidSomethingEventArgs>(recognizer_SaidSomething);
+                speechRecognizer = null;
+            }
+        }
+
+        #region Most apps won't modify this code
+        private void KinectStart()
+        {
+            KinectDiscovery();
+            if (Kinect == null)
+            {
+                if (Runtime.Kinects.Count == 0)
+                {
+                    ShowStatus(ErrorCondition.NoKinect);
+                }
+                else
+                {
+                    if (Runtime.Kinects[0].Status == KinectStatus.NotPowered)
                     {
-                        player = players[iSkeletonSlot];
-                    }
-                    else
-                    {
-                        player = new Player(iSkeletonSlot);
-                        player.setBounds(playerBounds);
-                        players.Add(iSkeletonSlot, player);
-                    }
-
-                    player.lastUpdated = DateTime.Now;
-
-                    // Update player's bone and joint positions
-                    if (data.Joints.Count > 0)
-                    {
-                        player.isAlive = true;
-
-                        // Head, hands, feet (hit testing happens in order here)
-                        player.UpdateJointPosition(data.Joints, JointID.HandLeft);
-                        player.UpdateJointPosition(data.Joints, JointID.HandRight);
-
-                        //Update the net position
-                        player.UpdateBonePosition(data.Joints, JointID.HandLeft, JointID.HandRight);
-                       
+                        ShowStatus(ErrorCondition.NoPower);
                     }
                 }
-                iSkeletonSlot++;
             }
-        }*/
+        }
 
-        /*void SkeletonsReady(object sender, SkeletonFrameReadyEventArgs e)
+        private void KinectStop()
+        {
+            if (Kinect != null)
+            {
+                Kinect = null;
+            }
+        }
+
+        private bool IsKinectStarted
+        {
+            get { return Kinect != null; }
+        }
+
+        private void KinectDiscovery()
+        {
+            //listen to any status change for Kinects
+            Runtime.Kinects.StatusChanged += new EventHandler<StatusChangedEventArgs>(Kinects_StatusChanged);
+
+            //loop through all the Kinects attached to this PC, and start the first that is connected without an error.
+            foreach (Runtime kinect in Runtime.Kinects)
+            {
+                if (kinect.Status == KinectStatus.Connected)
+                {
+                    if (Kinect == null)
+                    {
+                        Kinect = kinect;
+                        return;
+                    }
+                }
+            }
+        }
+
+        private void Kinects_StatusChanged(object sender, StatusChangedEventArgs e)
+        {
+            switch (e.Status)
+            {
+                case KinectStatus.Connected:
+                    if (Kinect == null)
+                    {
+                        Kinect = e.KinectRuntime; //if Runtime.Init() fails due to an AppDeviceConflict, this property will be null after return.
+                        ShowStatus(ErrorCondition.None);
+                    }
+                    break;
+                case KinectStatus.Disconnected:
+                    if (Kinect == e.KinectRuntime)
+                    {
+                        Kinect = null;
+                    }
+                    break;
+                case KinectStatus.NotReady:
+                    if (Kinect == null)
+                    {
+                        ShowStatus(ErrorCondition.NotReady);
+                    }
+                    break;
+                case KinectStatus.NotPowered:
+                    if (Kinect == e.KinectRuntime)
+                    {
+                        Kinect = null;
+                        ShowStatus(ErrorCondition.NoPower);
+                    }
+                    break;
+                default:
+                    throw new Exception("Unhandled Status: " + e.Status);
+            }
+            if (Kinect == null)
+            {
+                ShowStatus(ErrorCondition.NoKinect);
+            }
+        }
+
+        public Runtime Kinect
+        {
+            get
+            {
+                return _Kinect;
+            }
+            set
+            {
+                if (_Kinect != null)
+                {
+                    UninitializeKinectServices(_Kinect);
+                }
+                _Kinect = value;
+                if (_Kinect != null)
+                {
+                    InitializeKinectServices(_Kinect);
+                }
+            }
+        }
+
+        private Runtime _Kinect;
+        private ErrorCondition currentErrorCondition;
+
+        internal enum ErrorCondition
+        {
+            None,
+            NoPower,
+            NoKinect,
+            NoSpeech,
+            NotReady,
+            KinectAppConflict,
+        }
+        #endregion Most apps won't modify this code
+
+        #endregion Kinect discovery + setup
+
+        #region Kinect Skeleton processing
+        void SkeletonsReady(object sender, SkeletonFrameReadyEventArgs e)
         {
             SkeletonFrame skeletonFrame = e.SkeletonFrame;
 
@@ -201,16 +377,6 @@ namespace ShoopDoup.ViewControllers
             {
                 return;
             }
-
-            SkeletonData skeleton = (from s in skeletonFrame.Skeletons
-                                     where s.TrackingState == SkeletonTrackingState.Tracked
-                                     select s).FirstOrDefault();
-            myNet.X1 = skeleton.Joints[JointID.HandLeft].Position.X;
-            myNet.X2 = skeleton.Joints[JointID.HandRight].Position.X;
-            myNet.Y1 = skeleton.Joints[JointID.HandLeft].Position.X;
-            myNet.Y2 = skeleton.Joints[JointID.HandRight].Position.X;
-
-         
 
             int iSkeletonSlot = 0;
 
@@ -248,9 +414,9 @@ namespace ShoopDoup.ViewControllers
                 }
                 iSkeletonSlot++;
             }
-        }*/
+        }
 
-        /*void CheckPlayers()
+        void CheckPlayers()
         {
             foreach (var player in players)
             {
@@ -279,7 +445,7 @@ namespace ShoopDoup.ViewControllers
                     fallingThings.SetGameMode(FallingThings.GameMode.Off);
 
                 if ((playersAlive == 0) && (speechRecognizer != null))
-                    BannerText.NewBanner(Properties.Resources.Vocabulary, screenRect, true, Color.FromArgb(200, 255, 255, 255));
+                    BannerText.NewBanner(ShoopDoup.Properties.Resources.Vocabulary, screenRect, true, Color.FromArgb(200, 255, 255, 255));
 
                 playersAlive = alive;
             }
@@ -318,7 +484,7 @@ namespace ShoopDoup.ViewControllers
         }
         #endregion Kinect Skeleton processing
 
-        /*#region GameTimer/Thread
+        #region GameTimer/Thread
         private void GameThread()
         {
             runningGameThread = true;
@@ -352,7 +518,7 @@ namespace ShoopDoup.ViewControllers
                 }
                 predNextFrame += TimeSpan.FromMilliseconds(1000.0 / targetFramerate);
 
-                Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Send,
+                Dispatcher.Invoke(DispatcherPriority.Send,
                     new Action<int>(HandleGameTimer), 0);
             }
         }
@@ -389,9 +555,9 @@ namespace ShoopDoup.ViewControllers
 
             CheckPlayers();
         }
-        #endregion GameTimer/Thread*/
+        #endregion GameTimer/Thread
 
-        /*#region Kinect Speech processing
+        #region Kinect Speech processing
         void recognizer_SaidSomething(object sender, SpeechRecognizer.SaidSomethingEventArgs e)
         {
             FlyingText.NewFlyingText(screenRect.Width / 30, new Point(screenRect.Width / 2, screenRect.Height / 2), e.Matched);
@@ -472,12 +638,5 @@ namespace ShoopDoup.ViewControllers
             }
         }
         #endregion Kinect Speech processing
-       
     }
-}
-*/
-public class Win32Timer
-{
-    [DllImport("Winmm.dll")]
-    public static extern int timeBeginPeriod(UInt32 uPeriod);
 }

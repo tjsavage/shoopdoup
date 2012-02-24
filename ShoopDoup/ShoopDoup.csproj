@@ -81,6 +81,9 @@
     </Compile>
     <Compile Include="ServerConnector.cs" />
     <Compile Include="ViewControllers\NetGameController.cs" />
+    <Compile Include="ViewControllers\NetGameController.xaml.cs">
+      <DependentUpon>NetGameController.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ViewControllers\StandbyController.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -95,6 +98,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="SceneController.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ViewControllers\NetGameController.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

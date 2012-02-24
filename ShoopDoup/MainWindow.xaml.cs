@@ -24,6 +24,8 @@ using System.Windows.Shapes;
 using Microsoft.Research.Kinect.Nui;
 using Coding4Fun.Kinect.Wpf;
 using ShoopDoup.ViewControllers;
+using NetGame;
+using NetGame.Utils;
 
 namespace ShoopDoup
 {
@@ -44,7 +46,7 @@ namespace ShoopDoup
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             SetupKinect();
-            currentController = new NetGameController();
+            currentController = new StandbyController();
             this.Content = currentController;
         }
 
@@ -63,6 +65,7 @@ namespace ShoopDoup
                 nui.Initialize(RuntimeOptions.UseSkeletalTracking);
 
                 //add event to receive skeleton data
+                //nui.SkeletonFrameReady += new EventHandler<SkeletonFrameReadyEventArgs>(nui_SkeletonFrameReady);
                 nui.SkeletonFrameReady += new EventHandler<SkeletonFrameReadyEventArgs>(nui_SkeletonFrameReady);
 
                 //to experiment, toggle TransformSmooth between true & false
@@ -82,7 +85,7 @@ namespace ShoopDoup
         void nui_SkeletonFrameReady(object sender, SkeletonFrameReadyEventArgs e)
         {
 
-            SkeletonFrame allSkeletons = e.SkeletonFrame;
+            SkeletonFrame allSkeletons= e.SkeletonFrame;
 
             //get the first tracked skeleton
             SkeletonData skeleton = (from s in allSkeletons.Skeletons

@@ -43,6 +43,11 @@ namespace ShoopDoup.ViewControllers
 
         public override void updateSkeleton(SkeletonData skeleton)
         {
+
+            /*SkeletonData skeleton = (from s in allSkeletons.Skeletons
+                                     where s.TrackingState == SkeletonTrackingState.Tracked
+                                     select s).FirstOrDefault();*/
+
             if (skeleton.Joints[JointID.Spine].ScaleTo(640, 480, .5f, .5f).Position.X < this.WindowWidth / 3)
             {
                 if (state != STANDBY_STATE.FollowingLeft)
