@@ -43,6 +43,9 @@
     <Reference Include="Microsoft.Samples.Kinect.WpfViewers">
       <HintPath>..\..\..\..\Program Files\Microsoft SDKs\Kinect\v1.0 Beta2\Samples\bin\Microsoft.Samples.Kinect.WpfViewers.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\Json40r8\Bin\Net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -63,9 +66,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Models\DataObject.cs" />
+    <Compile Include="Models\Minigame.cs" />
+    <Compile Include="MinigameFactory.cs" />
     <Compile Include="SceneController.xaml.cs">
       <DependentUpon>SceneController.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ServerConnector.cs" />
     <Compile Include="ViewControllers\StandbyController.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
