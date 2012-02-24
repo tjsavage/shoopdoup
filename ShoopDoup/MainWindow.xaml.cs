@@ -23,8 +23,9 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.Research.Kinect.Nui;
 using Coding4Fun.Kinect.Wpf;
+using ShoopDoup.ViewControllers;
 
-namespace SkeletalTracking
+namespace ShoopDoup
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -38,11 +39,13 @@ namespace SkeletalTracking
 
         //Kinect Runtime
         Runtime nui;
+        public SceneController currentController;
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             SetupKinect();
-
+            currentController = new StandbyController();
+            this.Content = currentController;
         }
 
         private void SetupKinect()
@@ -89,20 +92,8 @@ namespace SkeletalTracking
 
             if (skeleton != null)
             {
-                //set position
-                SetEllipsePosition(headEllipse, skeleton.Joints[JointID.Head]);
-                SetEllipsePosition(leftEllipse, skeleton.Joints[JointID.HandLeft]);
-                SetEllipsePosition(rightEllipse, skeleton.Joints[JointID.HandRight]);
+                currentController.updateSkeleton(skeleton);
             }
-        }
-
-        private void SetEllipsePosition(FrameworkElement ellipse, Joint joint)
-        {
-            var scaledJoint = joint.ScaleTo(640, 480, .5f, .5f);
-
-            Canvas.SetLeft(ellipse, scaledJoint.Position.X);
-            Canvas.SetTop(ellipse, scaledJoint.Position.Y);
-
         }
 
 
