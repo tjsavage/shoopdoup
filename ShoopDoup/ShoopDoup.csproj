@@ -44,7 +44,7 @@
       <HintPath>..\..\..\..\Program Files\Microsoft SDKs\Kinect\v1.0 Beta2\Samples\bin\Microsoft.Samples.Kinect.WpfViewers.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\Json40r8\Bin\Net40\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\Downloads\Json40r8\Bin\Net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />

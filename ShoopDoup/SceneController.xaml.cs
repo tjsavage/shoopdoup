@@ -28,8 +28,20 @@ namespace ShoopDoup
             InitializeComponent();
         }
 
-        public virtual void updateSkeleton(SkeletonData skeleton);
+        public virtual void updateSkeleton(SkeletonData skeleton) { }
 
-        public virtual void updateWithoutSkeleton();
+        public virtual void updateWithoutSkeleton() { }
+
+        public BitmapImage toBitmapImage(System.Drawing.Bitmap bitmap)
+        {
+            System.IO.MemoryStream ms = new System.IO.MemoryStream();
+            bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+            ms.Position = 0;
+            BitmapImage bi = new BitmapImage();
+            bi.BeginInit();
+            bi.StreamSource = ms;
+            bi.EndInit();
+            return bi;
+        }
     }
 }
