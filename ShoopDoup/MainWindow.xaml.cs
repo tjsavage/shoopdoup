@@ -94,6 +94,10 @@ namespace ShoopDoup
             {
                 currentController.updateSkeleton(skeleton);
             }
+            else
+            {
+                currentController.updateWithoutSkeleton();
+            }
         }
 
 

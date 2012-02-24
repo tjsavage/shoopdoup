@@ -28,9 +28,8 @@ namespace ShoopDoup
             InitializeComponent();
         }
 
-        public virtual void updateSkeleton(SkeletonData skeleton)
-        {
+        public virtual void updateSkeleton(SkeletonData skeleton);
 
-        }
+        public virtual void updateWithoutSkeleton();
     }
 }
