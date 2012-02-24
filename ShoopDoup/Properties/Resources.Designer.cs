@@ -94,5 +94,16 @@ namespace ShoopDoup.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Say something out loud to control the game!     Say colors and shapes like: &quot;Green Circles&quot;   &quot;Yellow Stars&quot;   &quot;Black Triangles&quot;   &quot;All Colors&quot;     Or say commands like: &quot;Speed Up&quot;   &quot;Slow Down&quot;   &quot;Bigger&quot;   &quot;Smaller&quot;   &quot;Stop&quot;   &quot;Go&quot;   &quot;Giant&quot;        Or say &quot;Reset&quot; to start over!.
+        /// </summary>
+        public static string Vocabulary
+        {
+            get
+            {
+                return ResourceManager.GetString("Vocabulary", resourceCulture);
+            }
+        }
     }
 }

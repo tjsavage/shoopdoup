@@ -44,7 +44,7 @@ namespace ShoopDoup
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             SetupKinect();
-            currentController = new StandbyController();
+            currentController = new NetGameController();
             this.Content = currentController;
         }
 

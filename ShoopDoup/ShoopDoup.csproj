@@ -43,8 +43,12 @@
     <Reference Include="Microsoft.Samples.Kinect.WpfViewers">
       <HintPath>..\..\..\..\Program Files\Microsoft SDKs\Kinect\v1.0 Beta2\Samples\bin\Microsoft.Samples.Kinect.WpfViewers.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Speech, Version=10.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\Program Files (x86)\Microsoft Speech Platform SDK\Assembly\Microsoft.Speech.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\Downloads\Json40r8\Bin\Net40\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\Desktop\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -69,10 +73,14 @@
     <Compile Include="Models\DataObject.cs" />
     <Compile Include="Models\Minigame.cs" />
     <Compile Include="MinigameFactory.cs" />
+    <Compile Include="NetGame\FallingShapes.cs" />
+    <Compile Include="NetGame\Player.cs" />
+    <Compile Include="NetGame\SpeechRecognizer.cs" />
     <Compile Include="SceneController.xaml.cs">
       <DependentUpon>SceneController.xaml</DependentUpon>
     </Compile>
     <Compile Include="ServerConnector.cs" />
+    <Compile Include="ViewControllers\NetGameController.cs" />
     <Compile Include="ViewControllers\StandbyController.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
