@@ -122,6 +122,9 @@
     <Resource Include="Assets\WelcomeFollowing.png" />
     <Resource Include="Assets\WelcomeSleep.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\WelcomeBored.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
