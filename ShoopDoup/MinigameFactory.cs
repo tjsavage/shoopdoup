@@ -11,7 +11,7 @@ namespace ShoopDoup
     {
         private ServerConnector sc;
         private List<Minigame> minigames;
-        private String[] types = { "ratings" };
+        private MINIGAME_TYPE[] types = (MINIGAME_TYPE[])Enum.GetValues(typeof(MINIGAME_TYPE));
 
         public MinigameFactory()
         {
@@ -34,18 +34,18 @@ namespace ShoopDoup
         {
             for (int i = 0; i < types.Length; i++)
             {
-                JObject projectTypeResult = sc.makeRequest("projectType", types[i], "");
+                JObject projectTypeResult = sc.makeRequest("projectType", types[i].ToString(), "");
                 String projectId = (String)projectTypeResult["response"]["projectId"];
                 Console.WriteLine("Requesting Project: " + projectId);
                 JObject projectIdResult = sc.makeRequest("projectId", "", projectId);
-                addNewMinigame(projectIdResult);
+                addNewMinigame(projectIdResult, types[i], (String)projectTypeResult["response"]["title"], (String)projectTypeResult["response"]["description"]);
             }
 
         }
 
-        private void addNewMinigame(JObject projectIdResult)
+        private void addNewMinigame(JObject projectIdResult, MINIGAME_TYPE type, String title, String description)
         {
-            Minigame mg = new Minigame(projectIdResult);
+            Minigame mg = new Minigame(projectIdResult, type, title, description);
             minigames.Add(mg);
         }
 
