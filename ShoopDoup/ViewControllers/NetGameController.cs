@@ -1,25 +1,28 @@
-﻿
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Linq;
-using System.Threading;
-using System.Media;
 using System.Text;
+using System.Threading;
+using System.Runtime.InteropServices;
+using System.Windows.Threading;
 using Microsoft.Research.Kinect.Nui;
+using Microsoft.Research.Kinect.Audio;
 using Coding4Fun.Kinect.Wpf;
-using NetGame;
-using NetGame.Speech;
+using System.Windows.Media.Imaging;
+using System.Windows.Media.Animation;
 using NetGame.Utils;
+using NetGame.Speech;
+
 
 namespace ShoopDoup.ViewControllers
 {
     class NetGameController : SceneController
     {
+
         #region Private State
         const int TimerResolution = 2;  // ms
         const int NumIntraFrames = 3;
@@ -31,8 +34,6 @@ namespace ShoopDoup.ViewControllers
         const double DefaultDropRate = 2.5;
         const double DefaultDropSize = 32.0;
         const double DefaultDropGravity = 1.0;
-
-        Dictionary<int, Player> players = new Dictionary<int, Player>();
 
         double dropRate = DefaultDropRate;
         double dropSize = DefaultDropSize;
@@ -49,31 +50,71 @@ namespace ShoopDoup.ViewControllers
         int frameCount = 0;
         bool runningGameThread = false;
         FallingThings fallingThings = null;
-        int playersAlive = 0;
-        SoundPlayer popSound = new SoundPlayer();
-        SoundPlayer hitSound = new SoundPlayer();
-        SoundPlayer squeezeSound = new SoundPlayer();
 
         RuntimeOptions runtimeOptions;
         SpeechRecognizer speechRecognizer = null;
-        private System.Windows.Controls.Canvas playfield;
-        System.Windows.Shapes.Line myNet = null;
 
+        private System.Windows.Controls.Image currentImage;
+        private System.Windows.Controls.Image leftHandCursor;
+        private System.Windows.Controls.Image rightHandCursor;
+        private System.Windows.Shapes.Line myNet;
+        private System.Windows.Controls.Canvas playfield;
 
         #endregion Private State
+  
 
         public NetGameController()
         {
-            //InitState();
-            playfield = new Canvas();
-            playfield.ClipToBounds = true;
-            playfield.Background = Brushes.Azure;
+
+            rightHandCursor = new System.Windows.Controls.Image();
+            rightHandCursor.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.HandCursor);
+            rightHandCursor.Width = 100;
+
+            leftHandCursor = new System.Windows.Controls.Image();
+            System.Drawing.Bitmap leftHandBitmap = ShoopDoup.Properties.Resources.HandCursor;
+            leftHandBitmap.RotateFlip(System.Drawing.RotateFlipType.RotateNoneFlipX);
+            leftHandCursor.Source = this.toBitmapImage(leftHandBitmap);
+            leftHandCursor.Width = 100;
+
+            playfield = new System.Windows.Controls.Canvas();
+            playfield.Background = Brushes.CadetBlue;
+            playfield.Width = 1000;
+            playfield.Height =600;
+            UpdatePlayfieldSize();
+
+            myNet = new System.Windows.Shapes.Line();
+            myNet.Stroke = System.Windows.Media.Brushes.LightSteelBlue;
+            myNet.X1 = 1;
+            myNet.X2 = 50;
+            myNet.Y1 = 1;
+            myNet.Y2 = 50;
+            myNet.StrokeThickness = 2;
+
+
+            mainCanvas.Children.Add(rightHandCursor);
+            mainCanvas.Children.Add(leftHandCursor);
+            mainCanvas.Children.Add(myNet);
             mainCanvas.Children.Add(playfield);
 
-            fallingThings = new FallingThings(MaxShapes, targetFramerate, NumIntraFrames);
-            fallingThings.DrawFrame(playfield.Children);
 
-            //UpdatePlayfieldSize();
+            Canvas.SetZIndex(rightHandCursor, 2);
+            Canvas.SetZIndex(leftHandCursor, 2);
+            Canvas.SetZIndex(myNet, 2);
+            Canvas.SetZIndex(playfield, 0);
+
+            rightHandCursor.Visibility = System.Windows.Visibility.Hidden;
+            leftHandCursor.Visibility = System.Windows.Visibility.Hidden;
+            myNet.Visibility = System.Windows.Visibility.Hidden;
+
+            speechRecognizer = SpeechRecognizer.Create();         //returns null if problem with speech prereqs or instantiation.
+            if (speechRecognizer != null)
+            {
+                speechRecognizer.Start(new KinectAudioSource());  //KinectSDK TODO: expose Runtime.AudioSource to return correct audiosource.
+                speechRecognizer.SaidSomething += new EventHandler<SpeechRecognizer.SaidSomethingEventArgs>(recognizer_SaidSomething);
+            }
+
+            double sceneWidth = mainCanvas.ActualWidth;
+            fallingThings = new FallingThings(MaxShapes, targetFramerate, NumIntraFrames,700,500);
 
             fallingThings.SetGravity(dropGravity);
             fallingThings.SetDropRate(dropRate);
@@ -81,202 +122,42 @@ namespace ShoopDoup.ViewControllers
             fallingThings.SetPolies(PolyType.All);
             fallingThings.SetGameMode(FallingThings.GameMode.Off);
 
-            myNet.Stroke = System.Windows.Media.Brushes.LightSteelBlue;
-            myNet.StrokeThickness = 2;
-            playfield.Children.Add(myNet);
-
-            popSound.Stream = Properties.Resources.Pop_5;
-            hitSound.Stream = null;
-            squeezeSound.Stream = Properties.Resources.Squeeze;
-
-            popSound.Play();
-
             Win32Timer.timeBeginPeriod(TimerResolution);
             var gameThread = new Thread(GameThread);
             gameThread.SetApartmentState(ApartmentState.STA);
             gameThread.Start();
 
             FlyingText.NewFlyingText(screenRect.Width / 30, new Point(screenRect.Width / 2, screenRect.Height / 2), "Shapes!");
+
         }
 
-
-        #region ctor + Window Events
-
-        private void RestoreWindowState()
-        {
-            // Restore window state to that last used
-            Rect bounds = Properties.Settings.Default.PrevWinPosition;
-            if (bounds.Right != bounds.Left)
-            {
-                this.Top = bounds.Top;
-                this.Left = bounds.Left;
-                this.Height = bounds.Height;
-                this.Width = bounds.Width;
-            }
-            this.WindowState = (WindowState)Properties.Settings.Default.WindowState;
-        }
-
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            runningGameThread = false;
-            Properties.Settings.Default.PrevWinPosition = this.RestoreBounds;
-            Properties.Settings.Default.WindowState = (int)this.WindowState;
-            Properties.Settings.Default.Save();
-        }
-
-        private void Window_Closed(object sender, EventArgs e)
-        {
-            KinectStop();
-        }
-        #endregion ctor + Window Events*/
-
-        
-        #region Kinect Skeleton processing
         public override void updateSkeleton(SkeletonData skeleton)
         {
-            //KinectSDK TODO: This nullcheck shouldn't be required. 
-            //Unfortunately, this version of the Kinect Runtime will continue to fire some skeletonFrameReady events after the Kinect USB is unplugged.
-            myNet.X1 = skeleton.Joints[JointID.HandLeft].Position.X;
-            myNet.X2 = skeleton.Joints[JointID.HandRight].Position.X;
-            myNet.Y1 = skeleton.Joints[JointID.HandLeft].Position.X;
-            myNet.Y2 = skeleton.Joints[JointID.HandRight].Position.X;
-          
 
-            int iSkeletonSlot = 0;
-
-            foreach (SkeletonData data in allSkeletons.Skeletons)
+            if (rightHandCursor.Visibility == System.Windows.Visibility.Hidden)
             {
-                if (SkeletonTrackingState.Tracked == data.TrackingState)
-                {
-                    Player player;
-                    if (players.ContainsKey(iSkeletonSlot))
-                    {
-                        player = players[iSkeletonSlot];
-                    }
-                    else
-                    {
-                        player = new Player(iSkeletonSlot);
-                        player.setBounds(playerBounds);
-                        players.Add(iSkeletonSlot, player);
-                    }
-
-                    player.lastUpdated = DateTime.Now;
-
-                    // Update player's bone and joint positions
-                    if (data.Joints.Count > 0)
-                    {
-                        player.isAlive = true;
-
-                        // Head, hands, feet (hit testing happens in order here)
-                        player.UpdateJointPosition(data.Joints, JointID.HandLeft);
-                        player.UpdateJointPosition(data.Joints, JointID.HandRight);
-
-                        //Update the net position
-                        player.UpdateBonePosition(data.Joints, JointID.HandLeft, JointID.HandRight);
-                       
-                    }
-                }
-                iSkeletonSlot++;
+                rightHandCursor.Visibility = System.Windows.Visibility.Visible;
+                leftHandCursor.Visibility = System.Windows.Visibility.Visible;
+                myNet.Visibility = System.Windows.Visibility.Visible;
             }
+            Canvas.SetTop(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.Y);
+            Canvas.SetLeft(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.X);
+            Canvas.SetTop(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.Y);
+            Canvas.SetLeft(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.X);
+
+            myNet.X1 = skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.X+50;
+            myNet.X2 = skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.X+50;
+            myNet.Y1 = skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.Y+50;
+            myNet.Y2 = skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.Y+50;
         }
-
-        void SkeletonsReady(object sender, SkeletonFrameReadyEventArgs e)
+        
+        public override void updateWithoutSkeleton()
         {
-            SkeletonFrame skeletonFrame = e.SkeletonFrame;
-
-            //KinectSDK TODO: This nullcheck shouldn't be required. 
-            //Unfortunately, this version of the Kinect Runtime will continue to fire some skeletonFrameReady events after the Kinect USB is unplugged.
-            if (skeletonFrame == null)
+            if (rightHandCursor.Visibility == System.Windows.Visibility.Visible)
             {
-                return;
+                rightHandCursor.Visibility = System.Windows.Visibility.Hidden;
+                leftHandCursor.Visibility = System.Windows.Visibility.Hidden;
             }
-
-            SkeletonData skeleton = (from s in skeletonFrame.Skeletons
-                                     where s.TrackingState == SkeletonTrackingState.Tracked
-                                     select s).FirstOrDefault();
-            myNet.X1 = skeleton.Joints[JointID.HandLeft].Position.X;
-            myNet.X2 = skeleton.Joints[JointID.HandRight].Position.X;
-            myNet.Y1 = skeleton.Joints[JointID.HandLeft].Position.X;
-            myNet.Y2 = skeleton.Joints[JointID.HandRight].Position.X;
-
-         
-
-            int iSkeletonSlot = 0;
-
-            foreach (SkeletonData data in skeletonFrame.Skeletons)
-            {
-                if (SkeletonTrackingState.Tracked == data.TrackingState)
-                {
-                    Player player;
-                    if (players.ContainsKey(iSkeletonSlot))
-                    {
-                        player = players[iSkeletonSlot];
-                    }
-                    else
-                    {
-                        player = new Player(iSkeletonSlot);
-                        player.setBounds(playerBounds);
-                        players.Add(iSkeletonSlot, player);
-                    }
-
-                    player.lastUpdated = DateTime.Now;
-
-                    // Update player's bone and joint positions
-                    if (data.Joints.Count > 0)
-                    {
-                        player.isAlive = true;
-
-                        // Head, hands, feet (hit testing happens in order here)
-                        //player.UpdateJointPosition(data.Joints, JointID.Head);
-                        player.UpdateJointPosition(data.Joints, JointID.HandLeft);
-                        player.UpdateJointPosition(data.Joints, JointID.HandRight);
-
-                        //Update net position
-                        player.UpdateBonePosition(data.Joints, JointID.HandLeft, JointID.HandRight);
-                    }
-                }
-                iSkeletonSlot++;
-            }
-        }
-
-        void CheckPlayers()
-        {
-            foreach (var player in players)
-            {
-                if (!player.Value.isAlive)
-                {
-                    // Player left scene since we aren't tracking it anymore, so remove from dictionary
-                    players.Remove(player.Value.getId());
-                    break;
-                }
-            }
-
-            // Count alive players
-            int alive = 0;
-            foreach (var player in players)
-            {
-                if (player.Value.isAlive)
-                    alive++;
-            }
-            if (alive != playersAlive)
-            {
-                if (alive == 2)
-                    fallingThings.SetGameMode(FallingThings.GameMode.TwoPlayer);
-                else if (alive == 1)
-                    fallingThings.SetGameMode(FallingThings.GameMode.Solo);
-                else if (alive == 0)
-                    fallingThings.SetGameMode(FallingThings.GameMode.Off);
-
-                if ((playersAlive == 0) && (speechRecognizer != null))
-                    BannerText.NewBanner(Properties.Resources.Vocabulary, screenRect, true, Color.FromArgb(200, 255, 255, 255));
-
-                playersAlive = alive;
-            }
-        }
-
-        private void Playfield_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            UpdatePlayfieldSize();
         }
 
         private void UpdatePlayfieldSize()
@@ -291,11 +172,8 @@ namespace ShoopDoup.ViewControllers
 
             playerBounds.X = 0;
             playerBounds.Width = playfield.ActualWidth;
-            playerBounds.Y = playfield.ActualHeight * 0.2;
-            playerBounds.Height = playfield.ActualHeight * 0.75;
-
-            foreach (var player in players)
-                player.Value.setBounds(playerBounds);
+            playerBounds.Y = playfield.ActualHeight;
+            playerBounds.Height = playfield.ActualHeight ;
 
             Rect rFallingBounds = playerBounds;
             rFallingBounds.Y = 0;
@@ -305,7 +183,24 @@ namespace ShoopDoup.ViewControllers
                 fallingThings.SetBoundaries(rFallingBounds);
             }
         }
-        #endregion Kinect Skeleton processing
+
+        void CheckPlayers()
+        {
+
+            fallingThings.SetGameMode(FallingThings.GameMode.Solo);
+            /*
+                if (alive == 2)
+                    fallingThings.SetGameMode(FallingThings.GameMode.TwoPlayer);
+                else if (alive == 1)
+                    fallingThings.SetGameMode(FallingThings.GameMode.Solo);
+                else if (alive == 0)
+                    fallingThings.SetGameMode(FallingThings.GameMode.Off);
+
+                if ((playersAlive == 0) && (speechRecognizer != null))
+                    BannerText.NewBanner(Properties.Resources.Vocabulary, screenRect, true, Color.FromArgb(200, 255, 255, 255));
+                playersAlive = alive;
+            }*/
+        }
 
         #region GameTimer/Thread
         private void GameThread()
@@ -341,7 +236,7 @@ namespace ShoopDoup.ViewControllers
                 }
                 predNextFrame += TimeSpan.FromMilliseconds(1000.0 / targetFramerate);
 
-                Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Send,
+                Dispatcher.Invoke(DispatcherPriority.Send,
                     new Action<int>(HandleGameTimer), 0);
             }
         }
@@ -355,30 +250,19 @@ namespace ShoopDoup.ViewControllers
             // Advance animations, and do hit testing.
             for (int i = 0; i < NumIntraFrames; ++i)
             {
-                foreach (var pair in players)
-                {
-                    HitType hit = fallingThings.LookForHits(pair.Value.segments, pair.Value.getId());
-                    if ((hit & HitType.Squeezed) != 0)
-                        squeezeSound.Play();
-                    else if ((hit & HitType.Popped) != 0)
-                        popSound.Play();
-                    else if ((hit & HitType.Hand) != 0)
-                        hitSound.Play();
-                }
+                HitType hit = fallingThings.LookForHits(myNet,1);
                 fallingThings.AdvanceFrame();
             }
 
             // Draw new Wpf scene by adding all objects to canvas
             playfield.Children.Clear();
             fallingThings.DrawFrame(playfield.Children);
-            foreach (var player in players)
-                player.Value.Draw(playfield.Children);
             BannerText.Draw(playfield.Children);
             FlyingText.Draw(playfield.Children);
 
             CheckPlayers();
         }
-        #endregion GameTimer/Thread*/
+        #endregion GameTimer/Thread
 
         #region Kinect Speech processing
         void recognizer_SaidSomething(object sender, SpeechRecognizer.SaidSomethingEventArgs e)
@@ -461,10 +345,13 @@ namespace ShoopDoup.ViewControllers
             }
         }
         #endregion Kinect Speech processing
-       
     }
+
 }
 
+// Since the timer resolution defaults to about 10ms precisely, we need to
+// increase the resolution to get framerates above between 50fps with any
+// consistency.
 public class Win32Timer
 {
     [DllImport("Winmm.dll")]

@@ -74,7 +74,6 @@
     <Compile Include="Models\Minigame.cs" />
     <Compile Include="MinigameFactory.cs" />
     <Compile Include="NetGame\FallingShapes.cs" />
-    <Compile Include="NetGame\Player.cs" />
     <Compile Include="NetGame\SpeechRecognizer.cs" />
     <Compile Include="SceneController.xaml.cs">
       <DependentUpon>SceneController.xaml</DependentUpon>

@@ -25,6 +25,121 @@ using Microsoft.Research.Kinect.Nui;
 /// 
 namespace NetGame.Utils
 {
+    // For hit testing, a dictionary of BoneData items, keyed off the endpoints
+    // of a segment (Bone) is used.  The velocity of these endpoints is estimated
+    // and used during hit testing and updating velocity vectors after a hit.
+
+    public struct Bone
+    {
+        public JointID joint1;
+        public JointID joint2;
+        public Bone(JointID j1, JointID j2)
+        {
+            joint1 = j1;
+            joint2 = j2;
+        }
+    }
+
+    public struct Segment
+    {
+        public double x1;
+        public double y1;
+        public double x2;
+        public double y2;
+        public double radius;
+
+        public Segment(double x, double y)
+        {
+            radius = 1;
+            x1 = x2 = x;
+            y1 = y2 = y;
+        }
+
+        public Segment(double x_1, double y_1, double x_2, double y_2)
+        {
+            radius = 1;
+            x1 = x_1;
+            y1 = y_1;
+            x2 = x_2;
+            y2 = y_2;
+        }
+
+        public bool IsCircle()
+        {
+            return ((x1 == x2) && (y1 == y2));
+        }
+    }
+
+    public struct BoneData
+    {
+        public Segment seg;
+        public Segment segLast;
+        public double xVel;
+        public double yVel;
+        public double xVel2;
+        public double yVel2;
+        private const double smoothing = 0.8;
+        public DateTime timeLastUpdated;
+
+        public BoneData(Segment s)
+        {
+            seg = segLast = s;
+            xVel = yVel = 0;
+            xVel2 = yVel2 = 0;
+            timeLastUpdated = DateTime.Now;
+        }
+
+        // Update the segment's position and compute a smoothed velocity for the circle or the
+        // endpoints of the segment based on  the time it took it to move from the last position
+        // to the current one.  The velocity is in pixels per second.
+
+        public void UpdateSegment(Segment s)
+        {
+            segLast = seg;
+            seg = s;
+            
+            DateTime cur = DateTime.Now;
+            double fMs = cur.Subtract(timeLastUpdated).TotalMilliseconds;
+            if (fMs < 10.0)
+                fMs = 10.0;
+            double fFPS = 1000.0 / fMs;
+            timeLastUpdated = cur;
+
+            if (seg.IsCircle())
+            {
+                xVel = xVel * smoothing + (1.0 - smoothing) * (seg.x1 - segLast.x1) * fFPS;
+                yVel = yVel * smoothing + (1.0 - smoothing) * (seg.y1 - segLast.y1) * fFPS;
+            }
+            else
+            {
+                xVel = xVel * smoothing + (1.0 - smoothing) * (seg.x1 - segLast.x1) * fFPS;
+                yVel = yVel * smoothing + (1.0 - smoothing) * (seg.y1 - segLast.y1) * fFPS;
+                xVel2 = xVel2 * smoothing + (1.0 - smoothing) * (seg.x2 - segLast.x2) * fFPS;
+                yVel2 = yVel2 * smoothing + (1.0 - smoothing) * (seg.y2 - segLast.y2) * fFPS;
+            }
+        }
+
+        // Using the velocity calculated above, estimate where the segment is right now.
+
+        public Segment GetEstimatedSegment(DateTime cur)
+        {
+            Segment estimate = seg;
+            double fMs = cur.Subtract(timeLastUpdated).TotalMilliseconds;
+            estimate.x1 += fMs * xVel / 1000.0;
+            estimate.y1 += fMs * yVel / 1000.0;
+            if (seg.IsCircle())
+            {
+                estimate.x2 = estimate.x1;
+                estimate.y2 = estimate.y1;
+            }
+            else
+            {
+                estimate.x2 += fMs * xVel2 / 1000.0;
+                estimate.y2 += fMs * yVel2 / 1000.0;
+            }
+            return estimate;
+        }
+    }
 
     public enum PolyType
     {
@@ -274,60 +389,118 @@ namespace NetGame.Utils
             // the segment being hit is returned, along with the spot on the line from 0 to 1 if
             // a line segment was hit.
 
-            public bool Hit(Line myNet, ref Point ptHitCenter, ref double lineHitLocation)
+            public bool Hit(Segment seg, ref Point ptHitCenter, ref double lineHitLocation)
             {
-                double minDxSquared = size;
+                double minDxSquared = size + seg.radius;
                 minDxSquared *= minDxSquared;
 
-                double sqrLineSize = SquaredDistance(myNet.X1, myNet.Y1, myNet.X2, myNet.Y2);
-                if (sqrLineSize < 0.5)  // if less than 1/2 pixel apart, just check dx to an endpoint
+                // See if falling thing hit this body segment
+                if (seg.IsCircle())
                 {
-                    return (SquaredDistance(center.X, center.Y, myNet.X1, myNet.X1) < minDxSquared) ? true : false;
+                    if (SquaredDistance(center.X, center.Y, seg.x1, seg.y1) <= minDxSquared)
+                    {
+                        ptHitCenter.X = seg.x1;
+                        ptHitCenter.Y = seg.y1;
+                        lineHitLocation = 0;
+                        return true;
+                    }
                 }
                 else
-                {   // Find dx from center to line
-                    double u = ((center.X - myNet.X1) * (myNet.X2 - myNet.X1) + (center.Y - myNet.Y1) * (myNet.Y2 - myNet.Y1)) / sqrLineSize;
-                    if ((u >= 0) && (u <= 1.0))
-                    {   // Tangent within line endpoints, see if we're close enough
-                        double xIntersect = myNet.X1 + (myNet.X2 - myNet.X1) * u;
-                        double yIntersect = myNet.Y1 + (myNet.Y2 - myNet.Y1) * u;
-
-                        if (SquaredDistance(center.X, center.Y,
-                            xIntersect, yIntersect) < minDxSquared)
-                        {
-                            lineHitLocation = u;
-                            ptHitCenter.X = xIntersect;
-                            ptHitCenter.Y = yIntersect; ;
-                            return true;
-                        }
+                {
+                    double sqrLineSize = SquaredDistance(seg.x1, seg.y1, seg.x2, seg.y2);
+                    if (sqrLineSize < 0.5)  // if less than 1/2 pixel apart, just check dx to an endpoint
+                    {
+                        return (SquaredDistance(center.X, center.Y, seg.x1, seg.y1) < minDxSquared) ? true : false;
                     }
                     else
-                    {
-                        // See how close we are to an endpoint
-                        if (u < 0)
-                        {
-                            if (SquaredDistance(center.X, center.Y, myNet.X1, myNet.Y1) < minDxSquared)
+                    {   // Find dx from center to line
+                        double u = ((center.X - seg.x1) * (seg.x2 - seg.x1) + (center.Y - seg.y1) * (seg.y2 - seg.y1)) / sqrLineSize;
+                        if ((u >= 0) && (u <= 1.0))
+                        {   // Tangent within line endpoints, see if we're close enough
+                            double xIntersect = seg.x1 + (seg.x2 - seg.x1) * u;
+                            double yIntersect = seg.y1 + (seg.y2 - seg.y1) * u;
+
+                            if (SquaredDistance(center.X, center.Y,
+                                xIntersect, yIntersect) < minDxSquared)
                             {
-                                lineHitLocation = 0;
-                                ptHitCenter.X = myNet.X1;
-                                ptHitCenter.Y = myNet.Y1;
+                                lineHitLocation = u;
+                                ptHitCenter.X = xIntersect;
+                                ptHitCenter.Y = yIntersect; ;
                                 return true;
                             }
                         }
                         else
                         {
-                            if (SquaredDistance(center.X, center.Y, myNet.X2, myNet.Y2) < minDxSquared)
+                            // See how close we are to an endpoint
+                            if (u < 0)
                             {
-                                lineHitLocation = 1;
-                                ptHitCenter.X = myNet.X2;
-                                ptHitCenter.Y = myNet.Y2;
-                                return true;
+                                if (SquaredDistance(center.X, center.Y, seg.x1, seg.y1) < minDxSquared)
+                                {
+                                    lineHitLocation = 0;
+                                    ptHitCenter.X = seg.x1;
+                                    ptHitCenter.Y = seg.y1;
+                                    return true;
+                                }
+                            }
+                            else
+                            {
+                                if (SquaredDistance(center.X, center.Y, seg.x2, seg.y2) < minDxSquared)
+                                {
+                                    lineHitLocation = 1;
+                                    ptHitCenter.X = seg.x2;
+                                    ptHitCenter.Y = seg.y2;
+                                    return true;
+                                }
                             }
                         }
                     }
-                }
                     return false;
-                
+                }
+                return false;
+            }
+
+            // Change our velocity based on the object's velocity, our velocity, and where we hit.
+
+            public void BounceOff(double x1, double y1, double otherSize, double fXv, double fYv)
+            {
+                double fX0 = center.X;
+                double fY0 = center.Y;
+                double fXV0 = xVelocity - fXv;
+                double fYV0 = yVelocity - fYv;
+                double dist = otherSize + size;
+                double fDx = Math.Sqrt((x1 - fX0) * (x1 - fX0) + (y1 - fY0) * (y1 - fY0));
+                double A, B, C;
+                double xdif = x1 - fX0;
+                double ydif = y1 - fY0;
+                double newvx1 = 0;
+                double newvy1 = 0;
+
+                fX0 = x1 - xdif / fDx * dist;
+                fY0 = y1 - ydif / fDx * dist;
+                xdif = x1 - fX0;
+                ydif = y1 - fY0;
+
+                double Bsq = dist * dist;
+		        B = dist;
+		        double Asq = fXV0 * fXV0 + fYV0 * fYV0;
+		        A = Math.Sqrt(Asq);
+                if (A > 0.000001)	// if moving much at all...
+                {
+                    double cx = fX0 + fXV0;
+                    double cy = fY0 + fYV0;
+                    double Csq = (x1 - cx) * (x1 - cx) + (y1 - cy) * (y1 - cy);
+                    C = Math.Sqrt(Csq);
+                    double tt = Asq + Bsq - Csq;
+                    double bb = 2 * A * B;
+                    double power = A * (tt / bb);
+                    newvx1 -= 2 * (xdif / dist * power);
+                    newvy1 -= 2 * (ydif / dist * power);
+                }
+
+                xVelocity += newvx1;
+                yVelocity += newvy1;
+                center.X = fX0;
+                center.Y = fY0;
             }
         }
 
@@ -355,15 +528,14 @@ namespace NetGame.Utils
         private Dictionary<int, int> scores = new Dictionary<int, int>();
         private DateTime gameStartTime;
 
-        public FallingThings(int maxThings, double framerate, int intraFrames, double sceneWidth, double sceneHeight)
+        public FallingThings(int maxThings, double framerate, int intraFrames)
         {
             this.maxThings = maxThings;
             this.intraFrames = intraFrames;
             this.targetFrameRate = framerate * intraFrames;
             SetGravity(gravityFactor);
             sceneRect.X = sceneRect.Y = 0;
-            sceneRect.Width=sceneWidth;
-            sceneRect.Height = sceneHeight;
+            sceneRect.Width = sceneRect.Height = 100;
             shapeSize = sceneRect.Height * baseShapeSize / 1000.0;
             expandingRate = Math.Exp(Math.Log(6.0) / (targetFrameRate * DissolveTime));
         }
@@ -458,7 +630,7 @@ namespace NetGame.Utils
             return ((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
         }
 
-        public HitType LookForHits(Line myNet,int playerId)
+        public HitType LookForHits(Dictionary<Bone, BoneData> segments, int playerId)
         {
             DateTime cur = DateTime.Now;
             HitType allHits = HitType.None;
@@ -467,6 +639,8 @@ namespace NetGame.Utils
             if (!scores.ContainsKey(playerId))
                 scores.Add(playerId, 0);
 
+            foreach (var pair in segments)
+            {
                 for (int i = 0; i < things.Count; i++)
                 {
                     HitType hit = HitType.None;
@@ -478,7 +652,8 @@ namespace NetGame.Utils
                             {
                                 var ptHitCenter = new Point(0, 0);
                                 double lineHitLocation = 0;
-                                if (thing.Hit(myNet, ref ptHitCenter, ref lineHitLocation))
+                                Segment seg = pair.Value.GetEstimatedSegment(cur);
+                                if (thing.Hit(seg, ref ptHitCenter, ref lineHitLocation))
                                 {
                                     double fMs = 1000;
                                     if (thing.timeLastHit != DateTime.MinValue)
@@ -487,6 +662,28 @@ namespace NetGame.Utils
                                         thing.avgTimeBetweenHits = thing.avgTimeBetweenHits * 0.8 + 0.2 * fMs;
                                     }
                                     thing.timeLastHit = cur;
+
+                                    // Bounce off head and hands
+                                    if (seg.IsCircle())
+                                    {
+                                        // Bounce off of hand/head/foot
+                                        thing.BounceOff(ptHitCenter.X, ptHitCenter.Y, seg.radius,
+                                            pair.Value.xVel / targetFrameRate, pair.Value.yVel / targetFrameRate);
+
+                                        if (fMs > 100.0)
+                                            hit |= HitType.Hand;
+                                    }
+                                    else  // Bonce off line segment
+                                    {
+                                        double xVel = pair.Value.xVel * (1.0 - lineHitLocation) + pair.Value.xVel2 * lineHitLocation;
+                                        double yVel = pair.Value.yVel * (1.0 - lineHitLocation) + pair.Value.yVel2 * lineHitLocation;
+
+                                        thing.BounceOff(ptHitCenter.X, ptHitCenter.Y, seg.radius,
+                                            xVel / targetFrameRate, yVel / targetFrameRate);
+
+                                        if (fMs > 100.0)
+                                            hit |= HitType.Arm;
+                                    }
 
                                     if (gameMode == GameMode.TwoPlayer)
                                     {
@@ -501,14 +698,39 @@ namespace NetGame.Utils
                                         {
                                             if (thing.touchedBy != playerId)
                                             {
-                                                hit |= HitType.Popped;
-                                                AddToScore(thing.touchedBy, 5 << (thing.hotness - 1), thing.center);
+                                                if (seg.IsCircle())
+                                                {
+                                                    thing.touchedBy = playerId;
+                                                    thing.hotness = Math.Min(thing.hotness + 1, 4);
+                                                }
+                                                else
+                                                {
+                                                    hit |= HitType.Popped;
+                                                    AddToScore(thing.touchedBy, 5 << (thing.hotness - 1), thing.center);
+                                                }
                                             }
                                         }
                                     }
                                     else if (gameMode == GameMode.Solo)
                                     {
-
+                                        if (seg.IsCircle())
+                                        {
+                                            if (thing.state == ThingState.Falling)
+                                            {
+                                                thing.state = ThingState.Bouncing;
+                                                thing.touchedBy = playerId;
+                                                thing.hotness = 1;
+                                                thing.flashCount = 0;
+                                            }
+                                            else if ((thing.state == ThingState.Bouncing) && (fMs > 100.0))
+                                            {
+                                                hit |= HitType.Popped;
+                                                AddToScore( thing.touchedBy, 
+                                                            (pair.Key.joint1 == JointID.FootLeft || pair.Key.joint1 == JointID.FootRight) ? 10 : 5, 
+                                                            thing.center);
+                                                thing.touchedBy = playerId;
+                                            }
+                                        }
                                     }
 
                                     things[i] = thing;
@@ -534,6 +756,7 @@ namespace NetGame.Utils
                     }
                     allHits |= hit;
                 }
+            }
             return allHits;
         }
 
@@ -764,7 +987,7 @@ namespace NetGame.Utils
             if (gameMode != GameMode.Off)
             {
                 TimeSpan span = DateTime.Now.Subtract(gameStartTime);
-                string text = span.Minutes.ToString() + "5:" + span.Seconds.ToString("00");
+                string text = span.Minutes.ToString() + ":" + span.Seconds.ToString("00");
 
                 Label timeText = MakeSimpleLabel(text,
                     new Rect(0.1 * sceneRect.Width, 0.25 * sceneRect.Height, 0.89 * sceneRect.Width, 0.72 * sceneRect.Height),

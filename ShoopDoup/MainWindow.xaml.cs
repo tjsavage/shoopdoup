@@ -22,10 +22,12 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.Research.Kinect.Nui;
+using Microsoft.Research.Kinect.Audio;
 using Coding4Fun.Kinect.Wpf;
 using ShoopDoup.ViewControllers;
 using NetGame;
 using NetGame.Utils;
+using NetGame.Speech;
 
 namespace ShoopDoup
 {
@@ -46,7 +48,7 @@ namespace ShoopDoup
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             SetupKinect();
-            currentController = new StandbyController();
+            currentController = new NetGameController();
             this.Content = currentController;
         }
 
