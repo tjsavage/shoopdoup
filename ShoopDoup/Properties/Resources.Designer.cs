@@ -81,6 +81,13 @@ namespace ShoopDoup.Properties {
             }
         }
         
+        internal static System.Drawing.Bitmap WelcomeBored {
+            get {
+                object obj = ResourceManager.GetObject("WelcomeBored", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         internal static System.Drawing.Bitmap WelcomeFollowing {
             get {
                 object obj = ResourceManager.GetObject("WelcomeFollowing", resourceCulture);

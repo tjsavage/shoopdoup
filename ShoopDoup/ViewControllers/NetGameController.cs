@@ -68,7 +68,7 @@ namespace ShoopDoup.ViewControllers
             playfield = new Canvas();
             playfield.ClipToBounds = true;
             playfield.Background = Brushes.Azure;
-            mainGrid.Children.Add(playfield);
+            mainCanvas.Children.Add(playfield);
 
             fallingThings = new FallingThings(MaxShapes, targetFramerate, NumIntraFrames);
             fallingThings.DrawFrame(playfield.Children);
@@ -85,7 +85,7 @@ namespace ShoopDoup.ViewControllers
             myNet.StrokeThickness = 2;
             playfield.Children.Add(myNet);
 
-            /*popSound.Stream = Properties.Resources.Pop_5;
+            popSound.Stream = Properties.Resources.Pop_5;
             hitSound.Stream = null;
             squeezeSound.Stream = Properties.Resources.Squeeze;
 
@@ -94,14 +94,13 @@ namespace ShoopDoup.ViewControllers
             Win32Timer.timeBeginPeriod(TimerResolution);
             var gameThread = new Thread(GameThread);
             gameThread.SetApartmentState(ApartmentState.STA);
-            gameThread.Start();*/
+            gameThread.Start();
 
             FlyingText.NewFlyingText(screenRect.Width / 30, new Point(screenRect.Width / 2, screenRect.Height / 2), "Shapes!");
         }
-    }
-}
 
-        /*#region ctor + Window Events
+
+        #region ctor + Window Events
 
         private void RestoreWindowState()
         {
@@ -132,25 +131,15 @@ namespace ShoopDoup.ViewControllers
         #endregion ctor + Window Events*/
 
         
-       /* #region Kinect Skeleton processing
-        public override void updateSkeletons(SkeletonFrame allSkeletons)
+        #region Kinect Skeleton processing
+        public override void updateSkeleton(SkeletonData skeleton)
         {
             //KinectSDK TODO: This nullcheck shouldn't be required. 
             //Unfortunately, this version of the Kinect Runtime will continue to fire some skeletonFrameReady events after the Kinect USB is unplugged.
-            /*if (allSkeletons == null)
-            {
-                return;
-            }
-            
-            SkeletonData skeleton = (from s in allSkeletons.Skeletons
-                                     where s.TrackingState == SkeletonTrackingState.Tracked
-                                     select s).FirstOrDefault();
             myNet.X1 = skeleton.Joints[JointID.HandLeft].Position.X;
             myNet.X2 = skeleton.Joints[JointID.HandRight].Position.X;
             myNet.Y1 = skeleton.Joints[JointID.HandLeft].Position.X;
             myNet.Y2 = skeleton.Joints[JointID.HandRight].Position.X;
-
-
           
 
             int iSkeletonSlot = 0;
@@ -189,9 +178,9 @@ namespace ShoopDoup.ViewControllers
                 }
                 iSkeletonSlot++;
             }
-        }*/
+        }
 
-        /*void SkeletonsReady(object sender, SkeletonFrameReadyEventArgs e)
+        void SkeletonsReady(object sender, SkeletonFrameReadyEventArgs e)
         {
             SkeletonFrame skeletonFrame = e.SkeletonFrame;
 
@@ -248,9 +237,9 @@ namespace ShoopDoup.ViewControllers
                 }
                 iSkeletonSlot++;
             }
-        }*/
+        }
 
-        /*void CheckPlayers()
+        void CheckPlayers()
         {
             foreach (var player in players)
             {
@@ -318,7 +307,7 @@ namespace ShoopDoup.ViewControllers
         }
         #endregion Kinect Skeleton processing
 
-        /*#region GameTimer/Thread
+        #region GameTimer/Thread
         private void GameThread()
         {
             runningGameThread = true;
@@ -391,7 +380,7 @@ namespace ShoopDoup.ViewControllers
         }
         #endregion GameTimer/Thread*/
 
-        /*#region Kinect Speech processing
+        #region Kinect Speech processing
         void recognizer_SaidSomething(object sender, SpeechRecognizer.SaidSomethingEventArgs e)
         {
             FlyingText.NewFlyingText(screenRect.Width / 30, new Point(screenRect.Width / 2, screenRect.Height / 2), e.Matched);
@@ -475,7 +464,7 @@ namespace ShoopDoup.ViewControllers
        
     }
 }
-*/
+
 public class Win32Timer
 {
     [DllImport("Winmm.dll")]

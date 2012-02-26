@@ -81,9 +81,6 @@
     </Compile>
     <Compile Include="ServerConnector.cs" />
     <Compile Include="ViewControllers\NetGameController.cs" />
-    <Compile Include="ViewControllers\NetGameController.xaml.cs">
-      <DependentUpon>NetGameController.xaml</DependentUpon>
-    </Compile>
     <Compile Include="ViewControllers\StandbyController.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -98,10 +95,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="SceneController.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ViewControllers\NetGameController.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -136,6 +129,9 @@
     <Resource Include="Assets\WelcomeAttention.png" />
     <Resource Include="Assets\WelcomeFollowing.png" />
     <Resource Include="Assets\WelcomeSleep.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\WelcomeBored.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

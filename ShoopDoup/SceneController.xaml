@@ -7,7 +7,7 @@
       d:DesignHeight="300" d:DesignWidth="300"
 	Title="SceneController">
 
-    <Grid Name="mainGrid">
+    <Canvas Name="mainCanvas">
         
-    </Grid>
+    </Canvas>
 </Page>
