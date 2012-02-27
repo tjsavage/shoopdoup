@@ -24,5 +24,30 @@ namespace ShoopDoup.Models
             Console.WriteLine("Adding Data Object: " + elementId + " " + projectId + " " + elementValue + " " + dataType + " " + url);
         }
 
+        public int getElementId()
+        {
+            return elementId;
+        }
+
+        public int getProjectId()
+        {
+            return projectId;
+        }
+
+        public String getElementValue()
+        {
+            return elementValue;
+        }
+
+        public String getDataType()
+        {
+            return dataType;
+        }
+
+        private String getUrl()
+        {
+            return url;
+        }
+
     }
 }

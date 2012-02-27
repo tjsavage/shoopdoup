@@ -24,6 +24,7 @@ using System.Windows.Shapes;
 using Microsoft.Research.Kinect.Nui;
 using Coding4Fun.Kinect.Wpf;
 using ShoopDoup.ViewControllers;
+using ShoopDoup;
 
 namespace ShoopDoup
 {
@@ -40,16 +41,19 @@ namespace ShoopDoup
         //Kinect Runtime
         Runtime nui;
         public SceneController currentController;
+        MinigameFactory minigameFactory;
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             SetupKinect();
-            currentController = new StandbyController();
+            currentController = new StandbyController(); // new WhackAMoleController(minigameFactory.getMinigameOfType(Models.MINIGAME_TYPE.Association)); 
             this.Content = currentController;
         }
 
         private void SetupKinect()
         {
+            minigameFactory = new MinigameFactory();
+
             if (Runtime.Kinects.Count == 0)
             {
                 this.Title = "No Kinect connected";

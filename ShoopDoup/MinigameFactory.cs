@@ -35,6 +35,9 @@ namespace ShoopDoup
             for (int i = 0; i < types.Length; i++)
             {
                 JObject projectTypeResult = sc.makeRequest("projectType", types[i].ToString(), "");
+
+                if (projectTypeResult == null) continue;
+              
                 String projectId = (String)projectTypeResult["response"]["projectId"];
                 Console.WriteLine("Requesting Project: " + projectId);
                 JObject projectIdResult = sc.makeRequest("projectId", "", projectId);
@@ -45,8 +48,22 @@ namespace ShoopDoup
 
         private void addNewMinigame(JObject projectIdResult, MINIGAME_TYPE type, String title, String description)
         {
+            Console.WriteLine("Adding " + type.ToString() + " , " + title + " , " + description);
             Minigame mg = new Minigame(projectIdResult, type, title, description);
             minigames.Add(mg);
+        }
+
+        public Minigame getMinigameOfType(MINIGAME_TYPE type)
+        {
+            for(int i = 0; i < minigames.Count; i++)
+            {
+                if(minigames[i].getType() == type)
+                {
+                    return minigames[i];
+                }
+            }
+
+            return null;
         }
 
     }
