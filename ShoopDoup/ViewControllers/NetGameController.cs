@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Media.Animation;
 using NetGame.Utils;
 using NetGame.Speech;
+using ShoopDoup.Models;
 
 
 namespace ShoopDoup.ViewControllers
@@ -67,9 +68,9 @@ namespace ShoopDoup.ViewControllers
         private BitmapImage instructionsBitmap;
 
         #endregion Private State
-  
 
-        public NetGameController()
+
+        public NetGameController(List<ShoopDoup.Models.DataObject> list, String title, String description)
         {
 
             currentImage = new System.Windows.Controls.Image();
