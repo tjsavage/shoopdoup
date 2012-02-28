@@ -21,7 +21,7 @@ namespace ShoopDoup
     /// </summary>
     public partial class SceneController : Page
     {
-        private Page parentController;
+        public MainWindow parentController;
 
         public SceneController()
         {

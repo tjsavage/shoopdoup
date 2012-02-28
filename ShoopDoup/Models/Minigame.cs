@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json.Linq;
+using ShoopDoup.ViewControllers;
 
 namespace ShoopDoup.Models
 {
@@ -14,14 +15,40 @@ namespace ShoopDoup.Models
         private String title;
         private String description;
         private MINIGAME_TYPE type;
+        private SceneController controller;
 
         public Minigame(JObject dataModel,MINIGAME_TYPE minigameType, String minigameTitle, String minigameDescription)
         {
             list = new List<DataObject>();
-            parseDataModel(dataModel);
+            if (dataModel != null)
+            {
+                parseDataModel(dataModel);
+            }
             title = minigameTitle;
             description = minigameDescription;
             type = minigameType;
+        }
+
+        public SceneController getController()
+        {
+            if (this.controller == null)
+            {
+                switch (this.type)
+                {
+                    case MINIGAME_TYPE.Binary:
+                        this.controller = new NetGameController(list, title, description);
+                        break;
+                    default:
+                        this.controller = new NetGameController(list, title, description);
+                        break;
+                }
+            }
+            return this.controller;
+        }
+
+        public void setController(SceneController controller)
+        {
+            this.controller = controller;
         }
 
         private void parseDataModel(JObject dataModel)

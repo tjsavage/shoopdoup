@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using ShoopDoup.Models;
+using ShoopDoup.ViewControllers;
 
 namespace ShoopDoup
 {
@@ -12,6 +13,7 @@ namespace ShoopDoup
         private ServerConnector sc;
         private List<Minigame> minigames;
         private MINIGAME_TYPE[] types = (MINIGAME_TYPE[])Enum.GetValues(typeof(MINIGAME_TYPE));
+        public MainWindow mainController;
 
         public MinigameFactory()
         {
@@ -50,7 +52,16 @@ namespace ShoopDoup
         {
             Console.WriteLine("Adding " + type.ToString() + " , " + title + " , " + description);
             Minigame mg = new Minigame(projectIdResult, type, title, description);
+            mg.getController().parentController = mainController;
             minigames.Add(mg);
+        }
+
+        public Minigame getDefaultMinigame()
+        {
+            Minigame defaultGame = new Minigame(null, MINIGAME_TYPE.Binary, "Catch the Object", "Catch the correct object");
+            defaultGame.setController(new NetGameController());
+            defaultGame.getController().parentController = mainController;
+            return defaultGame;
         }
 
         public Minigame getMinigameOfType(MINIGAME_TYPE type)

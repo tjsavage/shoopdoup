@@ -29,6 +29,7 @@ using NetGame;
 using NetGame.Utils;
 using NetGame.Speech;
 using ShoopDoup;
+using ShoopDoup.Models;
 
 namespace ShoopDoup
 {
@@ -50,8 +51,18 @@ namespace ShoopDoup
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             SetupKinect();
-            currentController = new NetGameController(); // new WhackAMoleController(minigameFactory.getMinigameOfType(Models.MINIGAME_TYPE.Association)); 
+            currentController = new StandbyController(); // new WhackAMoleController(minigameFactory.getMinigameOfType(Models.MINIGAME_TYPE.Association)); 
+            currentController.parentController = this;
             this.Content = currentController;
+
+            minigameFactory = new MinigameFactory();
+            minigameFactory.mainController = this;
+        }
+
+        public void controllerFinished()
+        {
+            Minigame newGame = minigameFactory.getDefaultMinigame();
+            this.Content = newGame.getController();
         }
 
         private void SetupKinect()
