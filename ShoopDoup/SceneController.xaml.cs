@@ -22,10 +22,16 @@ namespace ShoopDoup
     public partial class SceneController : Page
     {
         public MainWindow parentController;
+        private List<DataObject> dataObjects;
+        private String title;
+        private String description;
 
-        public SceneController()
+        public SceneController(List<DataObject> objects, String title, String description)
         {
             InitializeComponent();
+            this.dataObjects = objects;
+            this.title = title;
+            this.description = description;
         }
 
         public virtual void updateSkeleton(SkeletonData skeleton) { }
