@@ -67,9 +67,9 @@ namespace ShoopDoup.ViewControllers
         private BitmapImage instructionsBitmap;
 
         #endregion Private State
-  
 
-        public NetGameController()
+
+        public NetGameController(List<ShoopDoup.Models.DataObject> objects, String title, String description) : base()
         {
 
             currentImage = new System.Windows.Controls.Image();
@@ -135,6 +135,10 @@ namespace ShoopDoup.ViewControllers
                 speechRecognizer.SaidSomething += new EventHandler<SpeechRecognizer.SaidSomethingEventArgs>(recognizer_SaidSomething);
             }
             
+        }
+
+        public override void start() {
+            initNetGame();
         }
 
         public void initNetGame()

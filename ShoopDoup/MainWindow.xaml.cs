@@ -61,8 +61,10 @@ namespace ShoopDoup
 
         public void controllerFinished()
         {
+            Console.WriteLine("A controller finished.");
             Minigame newGame = minigameFactory.getDefaultMinigame();
             this.Content = newGame.getController();
+            newGame.start();
         }
 
         private void SetupKinect()
