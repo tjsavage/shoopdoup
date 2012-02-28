@@ -37,7 +37,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Coding4Fun.Kinect.Wpf">
-      <HintPath>..\..\Downloads\lab3-anant\CS247-Lab-3-anant\SkeletalTracking\bin\Release\Coding4Fun.Kinect.Wpf.dll</HintPath>
+      <HintPath>.\Coding4Fun.Kinect.Wpf.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Research.Kinect, Version=1.0.0.45, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.Samples.Kinect.WpfViewers">

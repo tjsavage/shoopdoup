@@ -54,17 +54,28 @@ namespace ShoopDoup.ViewControllers
         RuntimeOptions runtimeOptions;
         SpeechRecognizer speechRecognizer = null;
 
+        private STANDBY_STATE state;
+
         private System.Windows.Controls.Image currentImage;
         private System.Windows.Controls.Image leftHandCursor;
         private System.Windows.Controls.Image rightHandCursor;
         private System.Windows.Shapes.Line myNet;
+        private System.Windows.Shapes.Rectangle startGameRect;
         private System.Windows.Controls.Canvas playfield;
+
+        private enum STANDBY_STATE { Instructions, Playing, Exiting };
+        private BitmapImage instructionsBitmap;
 
         #endregion Private State
   
 
         public NetGameController()
         {
+
+            currentImage = new System.Windows.Controls.Image();
+            state = STANDBY_STATE.Instructions;
+            currentImage.Source = instructionsBitmap;
+            currentImage.Width = 800;
 
             rightHandCursor = new System.Windows.Controls.Image();
             rightHandCursor.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.HandCursor);
@@ -81,6 +92,16 @@ namespace ShoopDoup.ViewControllers
             playfield.Width = 1000;
             playfield.Height =600;
             UpdatePlayfieldSize();
+
+            startGameRect = new System.Windows.Shapes.Rectangle();
+            startGameRect.Stroke = System.Windows.Media.Brushes.Black;
+            startGameRect.Fill = System.Windows.Media.Brushes.Green;
+            startGameRect.Height = 100;
+            startGameRect.Width = 100;
+            mainCanvas.Children.Add(startGameRect);
+            Canvas.SetTop(startGameRect, 300);
+            Canvas.SetLeft(startGameRect, 320);
+
 
             myNet = new System.Windows.Shapes.Line();
             myNet.Stroke = System.Windows.Media.Brushes.LightSteelBlue;
@@ -105,6 +126,7 @@ namespace ShoopDoup.ViewControllers
             rightHandCursor.Visibility = System.Windows.Visibility.Hidden;
             leftHandCursor.Visibility = System.Windows.Visibility.Hidden;
             myNet.Visibility = System.Windows.Visibility.Hidden;
+            playfield.Visibility = System.Windows.Visibility.Hidden;
 
             speechRecognizer = SpeechRecognizer.Create();         //returns null if problem with speech prereqs or instantiation.
             if (speechRecognizer != null)
@@ -112,9 +134,17 @@ namespace ShoopDoup.ViewControllers
                 speechRecognizer.Start(new KinectAudioSource());  //KinectSDK TODO: expose Runtime.AudioSource to return correct audiosource.
                 speechRecognizer.SaidSomething += new EventHandler<SpeechRecognizer.SaidSomethingEventArgs>(recognizer_SaidSomething);
             }
+            
+        }
 
+        public void initNetGame()
+        {
             double sceneWidth = mainCanvas.ActualWidth;
-            fallingThings = new FallingThings(MaxShapes, targetFramerate, NumIntraFrames,700,500);
+            myNet.Visibility = System.Windows.Visibility.Visible;
+            playfield.Visibility = System.Windows.Visibility.Visible;
+            startGameRect.Visibility = System.Windows.Visibility.Hidden;
+
+            fallingThings = new FallingThings(MaxShapes, targetFramerate, NumIntraFrames, 700, 500);
 
             fallingThings.SetGravity(dropGravity);
             fallingThings.SetDropRate(dropRate);
@@ -128,7 +158,6 @@ namespace ShoopDoup.ViewControllers
             gameThread.Start();
 
             FlyingText.NewFlyingText(screenRect.Width / 30, new Point(screenRect.Width / 2, screenRect.Height / 2), "Shapes!");
-
         }
 
         public override void updateSkeleton(SkeletonData skeleton)
@@ -138,12 +167,17 @@ namespace ShoopDoup.ViewControllers
             {
                 rightHandCursor.Visibility = System.Windows.Visibility.Visible;
                 leftHandCursor.Visibility = System.Windows.Visibility.Visible;
-                myNet.Visibility = System.Windows.Visibility.Visible;
             }
+
             Canvas.SetTop(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.Y);
             Canvas.SetLeft(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.X);
             Canvas.SetTop(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.Y);
             Canvas.SetLeft(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.X);
+
+            if (skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.X < 200 && skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.Y < 300)
+            {
+                initNetGame();
+            }
 
             myNet.X1 = skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.X+50;
             myNet.X2 = skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.X+50;
