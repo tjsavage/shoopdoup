@@ -1,4 +1,6 @@
 *.suo
 */bin/*
 */obj/*
-
+*.csproj
+*.suo
+*.sln

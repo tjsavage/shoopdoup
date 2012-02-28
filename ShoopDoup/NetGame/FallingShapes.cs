@@ -447,9 +447,16 @@ namespace NetGame.Utils
         private void AddToScore(int player, int points, Point center)
         {
             if (scores.ContainsKey(player))
-                scores[player] = scores[player] + points;
+            {
+                scores[player] = scores[player] + 1;
+                Console.WriteLine("Same User: " + scores[player]);
+            }
             else
+            {
                 scores.Add(player, points);
+                Console.WriteLine("New User: " + points);
+            }
+           
             FlyingText.NewFlyingText(sceneRect.Width / 300, center, "+" + points);
         }
 
@@ -517,7 +524,7 @@ namespace NetGame.Utils
                                     {
                                         hit |= HitType.Popped | HitType.Squeezed;
                                         if (gameMode != GameMode.Off)
-                                            AddToScore(playerId, 1, thing.center);
+                                            AddToScore(1, 1, thing.center);
                                     }
                                 }
                             }
@@ -750,6 +757,7 @@ namespace NetGame.Utils
                 int i = 0;
                 foreach (var score in scores)
                 {
+                    Console.WriteLine("Checking Score");
                     Label label = MakeSimpleLabel(score.Value.ToString(),
                         new Rect((0.02 + i * 0.6) * sceneRect.Width, 0.01 * sceneRect.Height, 
                                  0.4 * sceneRect.Width, 0.3 * sceneRect.Height),
@@ -764,7 +772,7 @@ namespace NetGame.Utils
             if (gameMode != GameMode.Off)
             {
                 TimeSpan span = DateTime.Now.Subtract(gameStartTime);
-                string text = span.Minutes.ToString() + "5:" + span.Seconds.ToString("00");
+                string text = span.Minutes.ToString() + ":" + span.Seconds.ToString("00");
 
                 Label timeText = MakeSimpleLabel(text,
                     new Rect(0.1 * sceneRect.Width, 0.25 * sceneRect.Height, 0.89 * sceneRect.Width, 0.72 * sceneRect.Height),

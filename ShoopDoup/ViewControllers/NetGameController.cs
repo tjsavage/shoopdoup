@@ -88,7 +88,7 @@ namespace ShoopDoup.ViewControllers
             myNet.X2 = 50;
             myNet.Y1 = 1;
             myNet.Y2 = 50;
-            myNet.StrokeThickness = 2;
+            myNet.StrokeThickness = 5;
 
 
             mainCanvas.Children.Add(rightHandCursor);
@@ -99,7 +99,7 @@ namespace ShoopDoup.ViewControllers
 
             Canvas.SetZIndex(rightHandCursor, 2);
             Canvas.SetZIndex(leftHandCursor, 2);
-            Canvas.SetZIndex(myNet, 2);
+            Canvas.SetZIndex(myNet, 1);
             Canvas.SetZIndex(playfield, 0);
 
             rightHandCursor.Visibility = System.Windows.Visibility.Hidden;

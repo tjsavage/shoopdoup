@@ -61,7 +61,15 @@ namespace ShoopDoup
             Console.WriteLine(sb.ToString());
 
             //return null;
-            return JObject.Parse(sb.ToString());
+            if (sb.ToString().Contains("false"))
+            {
+                return null;
+            }
+            else
+            {
+                return JObject.Parse(sb.ToString());
+            }
+
 
         }
 

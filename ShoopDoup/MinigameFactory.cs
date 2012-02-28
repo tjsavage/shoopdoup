@@ -11,7 +11,7 @@ namespace ShoopDoup
     {
         private ServerConnector sc;
         private List<Minigame> minigames;
-        private String[] types = { "ratings" };
+        private MINIGAME_TYPE[] types = (MINIGAME_TYPE[])Enum.GetValues(typeof(MINIGAME_TYPE));
 
         public MinigameFactory()
         {
@@ -34,19 +34,36 @@ namespace ShoopDoup
         {
             for (int i = 0; i < types.Length; i++)
             {
-                JObject projectTypeResult = sc.makeRequest("projectType", types[i], "");
+                JObject projectTypeResult = sc.makeRequest("projectType", types[i].ToString(), "");
+
+                if (projectTypeResult == null) continue;
+              
                 String projectId = (String)projectTypeResult["response"]["projectId"];
                 Console.WriteLine("Requesting Project: " + projectId);
                 JObject projectIdResult = sc.makeRequest("projectId", "", projectId);
-                addNewMinigame(projectIdResult);
+                addNewMinigame(projectIdResult, types[i], (String)projectTypeResult["response"]["title"], (String)projectTypeResult["response"]["description"]);
             }
 
         }
 
-        private void addNewMinigame(JObject projectIdResult)
+        private void addNewMinigame(JObject projectIdResult, MINIGAME_TYPE type, String title, String description)
         {
-            Minigame mg = new Minigame(projectIdResult);
+            Console.WriteLine("Adding " + type.ToString() + " , " + title + " , " + description);
+            Minigame mg = new Minigame(projectIdResult, type, title, description);
             minigames.Add(mg);
+        }
+
+        public Minigame getMinigameOfType(MINIGAME_TYPE type)
+        {
+            for(int i = 0; i < minigames.Count; i++)
+            {
+                if(minigames[i].getType() == type)
+                {
+                    return minigames[i];
+                }
+            }
+
+            return null;
         }
 
     }
