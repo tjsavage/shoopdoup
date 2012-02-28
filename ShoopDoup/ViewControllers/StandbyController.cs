@@ -32,7 +32,7 @@ namespace ShoopDoup.ViewControllers
         private System.Windows.Controls.Image rightHandCursor;
         private System.Windows.Threading.DispatcherTimer fadeTimer;
 
-        public StandbyController()
+        public StandbyController() : base()
         {
             welcomeSleepBitmap = this.toBitmapImage(ShoopDoup.Properties.Resources.WelcomeSleep);
             welcomeAttentionBitmap = this.toBitmapImage(ShoopDoup.Properties.Resources.WelcomeAttention);
@@ -119,7 +119,7 @@ namespace ShoopDoup.ViewControllers
                 playerActiveTime = DateTime.UtcNow;
             }
 
-            if ((DateTime.UtcNow - playerActiveTime).Seconds > 3)
+            if (state == STANDBY_STATE.Attention && (DateTime.UtcNow - playerActiveTime).Seconds > 5)
             {
                 fadeTimer.IsEnabled = true;
             }

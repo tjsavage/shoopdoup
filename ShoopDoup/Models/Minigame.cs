@@ -11,7 +11,7 @@ namespace ShoopDoup.Models
 
     class Minigame
     {
-        private List<DataObject> list;
+        private List<ShoopDoup.Models.DataObject> list;
         private String title;
         private String description;
         private MINIGAME_TYPE type;
@@ -19,7 +19,7 @@ namespace ShoopDoup.Models
 
         public Minigame(JObject dataModel,MINIGAME_TYPE minigameType, String minigameTitle, String minigameDescription)
         {
-            list = new List<DataObject>();
+            list = new List<ShoopDoup.Models.DataObject>();
             if (dataModel != null)
             {
                 parseDataModel(dataModel);
@@ -27,6 +27,11 @@ namespace ShoopDoup.Models
             title = minigameTitle;
             description = minigameDescription;
             type = minigameType;
+        }
+
+        public void start()
+        {
+            this.getController().start();
         }
 
         public SceneController getController()

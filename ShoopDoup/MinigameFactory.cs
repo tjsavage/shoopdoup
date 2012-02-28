@@ -41,7 +41,7 @@ namespace ShoopDoup
                 if (projectTypeResult == null) continue;
               
                 String projectId = (String)projectTypeResult["response"]["projectId"];
-                Console.WriteLine("Requesting Project: " + projectId);
+
                 JObject projectIdResult = sc.makeRequest("projectId", "", projectId);
                 addNewMinigame(projectIdResult, types[i], (String)projectTypeResult["response"]["title"], (String)projectTypeResult["response"]["description"]);
             }
@@ -50,7 +50,6 @@ namespace ShoopDoup
 
         private void addNewMinigame(JObject projectIdResult, MINIGAME_TYPE type, String title, String description)
         {
-            Console.WriteLine("Adding " + type.ToString() + " , " + title + " , " + description);
             Minigame mg = new Minigame(projectIdResult, type, title, description);
             mg.getController().parentController = mainController;
             minigames.Add(mg);
@@ -59,7 +58,7 @@ namespace ShoopDoup
         public Minigame getDefaultMinigame()
         {
             Minigame defaultGame = new Minigame(null, MINIGAME_TYPE.Binary, "Catch the Object", "Catch the correct object");
-            defaultGame.setController(new NetGameController());
+            defaultGame.setController(new NetGameController(null, "", ""));
             defaultGame.getController().parentController = mainController;
             return defaultGame;
         }

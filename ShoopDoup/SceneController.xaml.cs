@@ -13,6 +13,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.Research.Kinect.Nui;
 using Coding4Fun.Kinect.Wpf;
+using ShoopDoup.Models;
 
 namespace ShoopDoup
 {
@@ -22,16 +23,11 @@ namespace ShoopDoup
     public partial class SceneController : Page
     {
         public MainWindow parentController;
-        private List<DataObject> dataObjects;
-        private String title;
-        private String description;
 
-        public SceneController(List<DataObject> objects, String title, String description)
+        public SceneController()
+            : base()
         {
             InitializeComponent();
-            this.dataObjects = objects;
-            this.title = title;
-            this.description = description;
         }
 
         public virtual void updateSkeleton(SkeletonData skeleton) { }
@@ -49,5 +45,7 @@ namespace ShoopDoup
             bi.EndInit();
             return bi;
         }
+
+        public virtual void start() { }
     }
 }
