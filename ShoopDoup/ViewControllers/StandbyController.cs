@@ -74,6 +74,7 @@ namespace ShoopDoup.ViewControllers
             this.fadeTimer = new System.Windows.Threading.DispatcherTimer();
             this.fadeTimer.Tick += FadeOut;
             this.fadeTimer.Interval = TimeSpan.FromMilliseconds(40);
+            this.fadeTimer.IsEnabled = false;
         }
 
         public override void updateSkeleton(SkeletonData skeleton)
@@ -130,7 +131,11 @@ namespace ShoopDoup.ViewControllers
             leftHandCursor.Opacity -= .03;
             rightHandCursor.Opacity -= .03;
             fadeTimer.IsEnabled = true;
-            if (Opacity < .04) fadeTimer.IsEnabled = false;
+            if (Opacity < .04)
+            {
+                fadeTimer.IsEnabled = false;
+                parentController.controllerFinished();
+            }
         }
 
         public override void updateWithoutSkeleton()
