@@ -80,11 +80,6 @@ namespace ShoopDoup.ViewControllers
         public override void updateSkeleton(SkeletonData skeleton)
         {
 
-
-            /*SkeletonData skeleton = (from s in allSkeletons.Skeletons
-                                     where s.TrackingState == SkeletonTrackingState.Tracked
-                                     select s).FirstOrDefault();*/
-
             if (rightHandCursor.Visibility == System.Windows.Visibility.Hidden)
             {
                 rightHandCursor.Visibility = System.Windows.Visibility.Visible;
@@ -131,7 +126,8 @@ namespace ShoopDoup.ViewControllers
             leftHandCursor.Opacity -= .03;
             rightHandCursor.Opacity -= .03;
             fadeTimer.IsEnabled = true;
-            if (Opacity < .04)
+        
+            if (currentImage.Opacity < .04)
             {
                 fadeTimer.IsEnabled = false;
                 parentController.controllerFinished();

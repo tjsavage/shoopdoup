@@ -72,7 +72,10 @@ namespace ShoopDoup.ViewControllers
 
         public NetGameController(List<ShoopDoup.Models.DataObject> objects, String title, String description) : base()
         {
-
+            start();
+        }
+            
+        public override void start() {
             currentImage = new System.Windows.Controls.Image();
             state = STANDBY_STATE.Instructions;
             currentImage.Source = instructionsBitmap;
@@ -138,10 +141,6 @@ namespace ShoopDoup.ViewControllers
             
         }
 
-        public override void start() {
-            initNetGame();
-        }
-
         public void initNetGame()
         {
             double sceneWidth = mainCanvas.ActualWidth;
@@ -179,7 +178,7 @@ namespace ShoopDoup.ViewControllers
             Canvas.SetTop(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.Y);
             Canvas.SetLeft(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.X);
 
-            if (skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.X < 200 && skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.Y < 300)
+            if (skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.X < 400 && skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.Y < 300)
             {
                 initNetGame();
             }

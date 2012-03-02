@@ -55,14 +55,16 @@ namespace ShoopDoup
             currentController.parentController = this;
             this.Content = currentController;
 
-            minigameFactory = new MinigameFactory();
-            minigameFactory.mainController = this;
+            //minigameFactory = new MinigameFactory();
+            //minigameFactory.mainController = this;
         }
 
         public void controllerFinished()
         {
             Console.WriteLine("A controller finished.");
             Minigame newGame = minigameFactory.getDefaultMinigame();
+            currentController = newGame.getController();
+            currentController.parentController = this;
             this.Content = newGame.getController();
             newGame.start();
         }
