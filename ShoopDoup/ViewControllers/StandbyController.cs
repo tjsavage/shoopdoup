@@ -32,7 +32,7 @@ namespace ShoopDoup.ViewControllers
         private System.Windows.Controls.Image rightHandCursor;
         private System.Windows.Threading.DispatcherTimer fadeTimer;
 
-        public StandbyController()
+        public StandbyController() : base()
         {
             welcomeSleepBitmap = this.toBitmapImage(ShoopDoup.Properties.Resources.WelcomeSleep);
             welcomeAttentionBitmap = this.toBitmapImage(ShoopDoup.Properties.Resources.WelcomeAttention);
@@ -74,10 +74,17 @@ namespace ShoopDoup.ViewControllers
             this.fadeTimer = new System.Windows.Threading.DispatcherTimer();
             this.fadeTimer.Tick += FadeOut;
             this.fadeTimer.Interval = TimeSpan.FromMilliseconds(40);
+            this.fadeTimer.IsEnabled = false;
         }
 
         public override void updateSkeleton(SkeletonData skeleton)
         {
+
+
+            /*SkeletonData skeleton = (from s in allSkeletons.Skeletons
+                                     where s.TrackingState == SkeletonTrackingState.Tracked
+                                     select s).FirstOrDefault();*/
+
             if (rightHandCursor.Visibility == System.Windows.Visibility.Hidden)
             {
                 rightHandCursor.Visibility = System.Windows.Visibility.Visible;
@@ -87,6 +94,7 @@ namespace ShoopDoup.ViewControllers
             Canvas.SetLeft(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.X);
             Canvas.SetTop(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.Y);
             Canvas.SetLeft(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.X);
+
 
             if (skeleton.Joints[JointID.Spine].ScaleTo(640, 480, .5f, .5f).Position.X < this.WindowWidth / 3)
             {
@@ -111,7 +119,7 @@ namespace ShoopDoup.ViewControllers
                 playerActiveTime = DateTime.UtcNow;
             }
 
-            if ((DateTime.UtcNow - playerActiveTime).Seconds > 3)
+            if (state == STANDBY_STATE.Attention && (DateTime.UtcNow - playerActiveTime).Seconds > 5)
             {
                 fadeTimer.IsEnabled = true;
             }
@@ -123,7 +131,11 @@ namespace ShoopDoup.ViewControllers
             leftHandCursor.Opacity -= .03;
             rightHandCursor.Opacity -= .03;
             fadeTimer.IsEnabled = true;
-            if (Opacity < .04) fadeTimer.IsEnabled = false;
+            if (Opacity < .04)
+            {
+                fadeTimer.IsEnabled = false;
+                parentController.controllerFinished();
+            }
         }
 
         public override void updateWithoutSkeleton()

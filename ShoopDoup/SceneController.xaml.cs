@@ -13,6 +13,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.Research.Kinect.Nui;
 using Coding4Fun.Kinect.Wpf;
+using ShoopDoup.Models;
 
 namespace ShoopDoup
 {
@@ -21,9 +22,10 @@ namespace ShoopDoup
     /// </summary>
     public partial class SceneController : Page
     {
-        private Page parentController;
+        public MainWindow parentController;
 
         public SceneController()
+            : base()
         {
             InitializeComponent();
         }
@@ -43,5 +45,7 @@ namespace ShoopDoup
             bi.EndInit();
             return bi;
         }
+
+        public virtual void start() { }
     }
 }
