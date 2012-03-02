@@ -66,7 +66,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="WhackAMoleController.cs" />
+    <Compile Include="CarStopper.cs" />
     <Compile Include="Models\DataObject.cs" />
     <Compile Include="Models\Minigame.cs" />
     <Compile Include="MinigameFactory.cs" />
@@ -125,6 +125,13 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\WelcomeBored.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\CarStopperBus.png" />
+    <Resource Include="Assets\CarStopperCar.png" />
+    <Resource Include="Assets\CarStopperMotorcycle.png" />
+    <Resource Include="Assets\CarStopperSUV.png" />
+    <Resource Include="Assets\CarStopperTruck.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

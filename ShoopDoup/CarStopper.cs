@@ -16,9 +16,11 @@ using ShoopDoup.Models;
 
 namespace ShoopDoup.ViewControllers
 {
-    class WhackAMoleController : SceneController
+    class CarStopper : SceneController
     {
         private enum GAME_STATE {Intro, Instructions, Playing, Exit};
+
+        private List<Bitmap> carBitmaps;
 
         private GAME_STATE state;
 
@@ -35,22 +37,27 @@ namespace ShoopDoup.ViewControllers
 
         private System.Windows.Threading.DispatcherTimer transitionTimer;
         private System.Windows.Threading.DispatcherTimer fadeTimer;
-        private System.Windows.Threading.DispatcherTimer popupTimer;
+        private System.Windows.Threading.DispatcherTimer carTimer;
 
         private System.Windows.Controls.Image leftHandCursor;
         private System.Windows.Controls.Image rightHandCursor;
 
         private int numFaderTicks = 0;
 
-        private Label popupLabel;
-        private int currentPopupDataIndex = 0;
+        private double highlightedHandBaseDepth;
+        private double depthDeltaForSelection = .3;
+
+        private Label carLabel;
+        private BitmapImage carBitmapImage;
+        private System.Windows.Controls.Image carImage;
+        private int currentcarDataIndex = 0;
 
         private Random randomGen = new Random();
 
         private System.Windows.Shapes.Rectangle[,] grid = new System.Windows.Shapes.Rectangle[3,3];
 
 
-        public WhackAMoleController(Minigame game)
+        public CarStopper(Minigame game)
         {
             state = GAME_STATE.Intro;
             minigame = game;
@@ -74,9 +81,9 @@ namespace ShoopDoup.ViewControllers
             this.fadeTimer.Interval = TimeSpan.FromMilliseconds(40);
             this.fadeTimer.IsEnabled = false;
 
-            this.popupTimer = new System.Windows.Threading.DispatcherTimer();
-            this.popupTimer.Tick += changePopup;
-            this.popupTimer.Interval = TimeSpan.FromMilliseconds(2500);
+            this.carTimer = new System.Windows.Threading.DispatcherTimer();
+            this.carTimer.Tick += moveCar;
+            this.carTimer.Interval = TimeSpan.FromMilliseconds(20);
 
             rightHandCursor = new System.Windows.Controls.Image();
             rightHandCursor.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.HandCursor);
@@ -90,6 +97,13 @@ namespace ShoopDoup.ViewControllers
 
             rightHandCursor.Opacity = 0;
             leftHandCursor.Opacity = 0;
+
+            carBitmaps = new List<Bitmap>();
+            carBitmaps.Add(ShoopDoup.Properties.Resources.CarStopperBus);
+            carBitmaps.Add(ShoopDoup.Properties.Resources.CarStopperCar);
+            carBitmaps.Add(ShoopDoup.Properties.Resources.CarStopperTruck);
+            carBitmaps.Add(ShoopDoup.Properties.Resources.CarStopperMotorcycle);
+            carBitmaps.Add(ShoopDoup.Properties.Resources.CarStopperSUV);
 
             mainCanvas.Children.Add(rightHandCursor);
             mainCanvas.Children.Add(leftHandCursor);
@@ -141,12 +155,72 @@ namespace ShoopDoup.ViewControllers
 
         public override void updateSkeleton(SkeletonData skeleton)
         {
+            highlightedHandBaseDepth = skeleton.Joints[JointID.Spine].ScaleTo(640, 480, .5f, .5f).Position.Z;
+
             if (state == GAME_STATE.Playing)
             {
+                Joint rightHand = skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f);
+                Joint leftHand = skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f);
+
                 Canvas.SetTop(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.Y);
                 Canvas.SetLeft(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.X);
                 Canvas.SetTop(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.Y);
                 Canvas.SetLeft(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.X);
+
+                if (carLabel != null)
+                {
+                    double deltaX_right = Math.Abs(Canvas.GetLeft(rightHandCursor) - Canvas.GetLeft(carLabel));
+                    double deltaY_right = Math.Abs(Canvas.GetTop(rightHandCursor) - Canvas.GetTop(carLabel));
+
+                    double deltaX_left = Math.Abs(Canvas.GetLeft(leftHandCursor) - Canvas.GetLeft(carLabel));
+                    double deltaY_left = Math.Abs(Canvas.GetTop(leftHandCursor) - Canvas.GetTop(carLabel));
+
+                    //If we have a hit in a reasonable range, highlight the target
+                    if (deltaX_right < 60 && deltaY_right < 60)
+                    {
+                        //Console.WriteLine("Right hand: " + rightHand.Position.Z + " \t Chest: " + highlightedHandBaseDepth);
+                        if (Math.Abs(rightHand.Position.Z - highlightedHandBaseDepth) > depthDeltaForSelection)
+                        {
+                            if (((TextBlock)carLabel.Content).Background == System.Windows.Media.Brushes.Yellow)
+                            {
+                                changeCar(null, null);
+                            }
+                            else
+                            {
+                                ((TextBlock)carLabel.Content).Background = System.Windows.Media.Brushes.Red;
+                            }
+
+                        }
+                        else
+                        {
+                            ((TextBlock)carLabel.Content).Background = System.Windows.Media.Brushes.Yellow;
+                        }
+                    }
+                    else if (deltaX_left < 60 && deltaY_left < 60)
+                    {
+                        //Console.WriteLine("Right hand: " + rightHand.Position.Z + " \t Chest: " + highlightedHandBaseDepth);
+                        if (Math.Abs(leftHand.Position.Z - highlightedHandBaseDepth) > depthDeltaForSelection)
+                        {
+                            if (((TextBlock)carLabel.Content).Background == System.Windows.Media.Brushes.Yellow)
+                            {
+                                changeCar(null, null);
+                            }
+                            else
+                            {
+                                ((TextBlock)carLabel.Content).Background = System.Windows.Media.Brushes.Red;
+                            }
+
+                        }
+                        else
+                        {
+                            ((TextBlock)carLabel.Content).Background = System.Windows.Media.Brushes.Yellow;
+                        }
+                    }
+                    else
+                    {
+                        ((TextBlock)carLabel.Content).Background = System.Windows.Media.Brushes.White;
+                    }
+                }
             }
         }
 
@@ -164,7 +238,7 @@ namespace ShoopDoup.ViewControllers
 
             if (state == GAME_STATE.Playing)
             {
-                drawGrid();
+                //drawGrid();
             }
         }
 
@@ -183,14 +257,6 @@ namespace ShoopDoup.ViewControllers
                 ((TextBlock)instructionLabel.Content).Opacity -= .04;
                 leftHandCursor.Opacity += .01;
                 rightHandCursor.Opacity += .01;
-
-                for (int row = 0; row < 3; row++)
-                {
-                    for (int col = 0; col < 3; col++)
-                    {
-                        grid[row, col].Opacity += .02;
-                    }
-                }
             }
             else if (state == GAME_STATE.Exit)
             {
@@ -198,14 +264,6 @@ namespace ShoopDoup.ViewControllers
                 rightHandCursor.Opacity -= .01;
 
                 ((TextBlock)exitLabel.Content).Opacity += .04;
-
-                for (int row = 0; row < 3; row++)
-                {
-                    for (int col = 0; col < 3; col++)
-                    {
-                        grid[row, col].Opacity -= .02;
-                    }
-                }
             }
 
             if (numFaderTicks >= 34)
@@ -215,8 +273,8 @@ namespace ShoopDoup.ViewControllers
 
                 if (state == GAME_STATE.Playing)
                 {
-                    addNewPopup();
-                    popupTimer.Start();
+                    addNewCar();
+                    carTimer.Start();
                 }
                 else if (state == GAME_STATE.Exit)
                 {
@@ -239,8 +297,8 @@ namespace ShoopDoup.ViewControllers
                     grid[row, col].Stroke = System.Windows.Media.Brushes.OrangeRed;
                     grid[row,col].Height = 80;
                     grid[row,col].Width = 80;
-                    Canvas.SetLeft(grid[row,col], 220 + 110*row);
-                    Canvas.SetTop(grid[row,col], 150 + 110*col);
+                    Canvas.SetLeft(grid[row,col], 150 + 160*row);
+                    Canvas.SetTop(grid[row,col], 100 + 160*col);
                     grid[row, col].Opacity = 0;
                     
                     mainCanvas.Children.Add(grid[row,col]);
@@ -248,36 +306,68 @@ namespace ShoopDoup.ViewControllers
             }
         }
 
-        private void addNewPopup()
+        private void addNewCar()
         {
-            popupLabel = new Label();
-            popupLabel.Content = new TextBlock();
-            ((TextBlock)(popupLabel.Content)).Text = minigame.getData().ElementAt(currentPopupDataIndex).getElementValue();
-            ((TextBlock)(popupLabel.Content)).TextWrapping = 0;
-            popupLabel.MaxWidth = 500;
-            popupLabel.FontSize = 40;
+            carBitmapImage = this.toBitmapImage(carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)));
+            carImage = new System.Windows.Controls.Image();
+            carImage.Source = carBitmapImage;
+            carImage.MaxHeight = 100;
+            carImage.MaxWidth = 200;
 
-            int randomRow = randomGen.Next(0,2);
-            int randomCol = randomGen.Next(0,2);
+            mainCanvas.Children.Add(carImage);
 
-            Canvas.SetLeft(popupLabel, Canvas.GetLeft(grid[randomRow, randomCol]));
-            Canvas.SetTop(popupLabel, Canvas.GetTop(grid[randomRow, randomCol]));
-            mainCanvas.Children.Add(popupLabel);
+            carLabel = new Label();
+            TextBlock carTextBlock = new TextBlock();
+            Viewbox carViewbox = new Viewbox();
+            carViewbox.Stretch = Stretch.Uniform;
+            carTextBlock.Text = minigame.getData().ElementAt(currentcarDataIndex).getElementValue();
+            carViewbox.Height = 100;
+            carViewbox.Width = 200;
+            carViewbox.Child = carTextBlock;
+            carLabel.Content = carViewbox;
+
+
+            int randomY = randomGen.Next(100, 500);
+
+            Canvas.SetLeft(carLabel, 0);
+            Canvas.SetTop(carLabel, randomY);
+            Canvas.SetLeft(carImage, 0);
+            Canvas.SetTop(carImage, randomY + 10);
+            mainCanvas.Children.Add(carLabel);
+
+            Canvas.SetZIndex(carImage, Canvas.GetZIndex(carLabel) - 1);
         }
 
-        private void changePopup(object sender, EventArgs e)
+        private void changeCar(object sender, EventArgs e)
         {
-            mainCanvas.Children.Remove(popupLabel);
-            currentPopupDataIndex++;
+            mainCanvas.Children.Remove(carLabel);
+            mainCanvas.Children.Remove(carImage);
+            currentcarDataIndex++;
 
-            if (currentPopupDataIndex >= minigame.getData().Count)
+            if (currentcarDataIndex >= minigame.getData().Count)
             {
                 moveToNextState(null, null);
+                carTimer.Stop();
             }
             else
             {
-                addNewPopup();
+                addNewCar();
             }
         }
+
+        private void moveCar(object sender, EventArgs e)
+        {
+
+            if (Canvas.GetLeft(carLabel) >= mainCanvas.ActualWidth)
+            {
+                changeCar(null, null);
+            }
+            else
+            {
+                Canvas.SetLeft(carLabel, Canvas.GetLeft(carLabel) + 5);
+                Canvas.SetLeft(carImage, Canvas.GetLeft(carImage) + 5);
+            }
+        }
+
     }
 }
