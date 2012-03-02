@@ -41,7 +41,7 @@
     </Reference>
     <Reference Include="Microsoft.Research.Kinect, Version=1.0.0.45, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.Samples.Kinect.WpfViewers">
-      <HintPath>..\..\..\..\Program Files\Microsoft SDKs\Kinect\v1.0 Beta2\Samples\bin\Microsoft.Samples.Kinect.WpfViewers.dll</HintPath>
+      <HintPath>.\Microsoft.Samples.Kinect.WpfViewers.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Speech, Version=10.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -71,6 +71,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CarStopper.cs" />
     <Compile Include="Models\DataObject.cs" />
     <Compile Include="Models\Minigame.cs" />
     <Compile Include="MinigameFactory.cs" />
@@ -80,8 +81,12 @@
       <DependentUpon>SceneController.xaml</DependentUpon>
     </Compile>
     <Compile Include="ServerConnector.cs" />
+    <Compile Include="ViewControllers\PopTheBubblesController.cs" />
     <Compile Include="ViewControllers\NetGameController.cs" />
     <Compile Include="ViewControllers\StandbyController.cs" />
+    <Compile Include="ViewControllers\WhackAMoleController.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -116,6 +121,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -132,6 +138,23 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\WelcomeBored.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\bubble.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\ocean.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Ocean.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\ocean2.jpg" />
+    <Resource Include="Assets\CarStopperBus.png" />
+    <Resource Include="Assets\CarStopperCar.png" />
+    <Resource Include="Assets\CarStopperMotorcycle.png" />
+    <Resource Include="Assets\CarStopperSUV.png" />
+    <Resource Include="Assets\CarStopperTruck.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

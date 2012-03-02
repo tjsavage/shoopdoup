@@ -31,7 +31,6 @@ namespace ShoopDoup.ViewControllers
         private Label introTitleLabel;
         private Label introDescriptionLabel;
         private Label instructionLabel;
-        private Label exitLabel;
 
         private System.Windows.Threading.DispatcherTimer transitionTimer;
         private System.Windows.Threading.DispatcherTimer fadeTimer;
@@ -62,7 +61,6 @@ namespace ShoopDoup.ViewControllers
             mainCanvas.Children.Add(introTitleLabel);
             mainCanvas.Children.Add(introDescriptionLabel);
             mainCanvas.Children.Add(instructionLabel);
-            mainCanvas.Children.Add(exitLabel);
 
             this.transitionTimer = new System.Windows.Threading.DispatcherTimer();
             this.transitionTimer.Tick += moveToNextState;
@@ -100,12 +98,12 @@ namespace ShoopDoup.ViewControllers
             introTitleLabel = new Label();
             introDescriptionLabel = new Label();
             instructionLabel = new Label();
-            exitLabel = new Label();
 
             introTitleLabel.Content = introTitle;
             introTitleLabel.FontSize = 40;
             Canvas.SetLeft(introTitleLabel, 300);
             Canvas.SetTop(introTitleLabel, 100);
+
 
             introDescriptionLabel.Content = new TextBlock();
             ((TextBlock)(introDescriptionLabel.Content)).Text = introDescription;
@@ -125,17 +123,6 @@ namespace ShoopDoup.ViewControllers
             Canvas.SetLeft(instructionLabel, 200);
             Canvas.SetTop(instructionLabel, 100);
             ((TextBlock)instructionLabel.Content).Opacity = 0;
-
-            exitLabel.Content = new TextBlock();
-            ((TextBlock)(exitLabel.Content)).Text = "Thanks for playing!";
-            ((TextBlock)(exitLabel.Content)).TextWrapping = 0;
-            exitLabel.MaxWidth = 500;
-            exitLabel.FontSize = 40;
-            exitLabel.VerticalAlignment = VerticalAlignment.Center;
-            exitLabel.HorizontalAlignment = HorizontalAlignment.Center;
-            Canvas.SetLeft(exitLabel, 200);
-            Canvas.SetTop(exitLabel, 300);
-            ((TextBlock)exitLabel.Content).Opacity = 0;
         }
 
 
@@ -192,39 +179,20 @@ namespace ShoopDoup.ViewControllers
                     }
                 }
             }
-            else if (state == GAME_STATE.Exit)
-            {
-                leftHandCursor.Opacity -= .01;
-                rightHandCursor.Opacity -= .01;
-
-                ((TextBlock)exitLabel.Content).Opacity += .04;
-
-                for (int row = 0; row < 3; row++)
-                {
-                    for (int col = 0; col < 3; col++)
-                    {
-                        grid[row, col].Opacity -= .02;
-                    }
-                }
-            }
 
             if (numFaderTicks >= 34)
             {
                 numFaderTicks = 0;
                 fadeTimer.Stop();
 
-                if (state == GAME_STATE.Playing)
+                if (state != GAME_STATE.Playing)
                 {
-                    addNewPopup();
-                    popupTimer.Start();
-                }
-                else if (state == GAME_STATE.Exit)
-                {
-                    Console.WriteLine("hi mom!");
+                    transitionTimer.Start();
                 }
                 else
                 {
-                    transitionTimer.Start();
+                    addNewPopup();
+                    popupTimer.Start();
                 }
             }
         }
@@ -252,32 +220,18 @@ namespace ShoopDoup.ViewControllers
         {
             popupLabel = new Label();
             popupLabel.Content = new TextBlock();
-            ((TextBlock)(popupLabel.Content)).Text = minigame.getData().ElementAt(currentPopupDataIndex).getElementValue();
+            //((TextBlock)(popupLabel.Content)).Text = minigame.getData().ElementAt(currentPopupDataIndex).getElementValue();
             ((TextBlock)(popupLabel.Content)).TextWrapping = 0;
             popupLabel.MaxWidth = 500;
             popupLabel.FontSize = 40;
 
             int randomRow = randomGen.Next(0,2);
             int randomCol = randomGen.Next(0,2);
-
-            Canvas.SetLeft(popupLabel, Canvas.GetLeft(grid[randomRow, randomCol]));
-            Canvas.SetTop(popupLabel, Canvas.GetTop(grid[randomRow, randomCol]));
-            mainCanvas.Children.Add(popupLabel);
         }
 
         private void changePopup(object sender, EventArgs e)
         {
-            mainCanvas.Children.Remove(popupLabel);
-            currentPopupDataIndex++;
-
-            if (currentPopupDataIndex >= minigame.getData().Count)
-            {
-                moveToNextState(null, null);
-            }
-            else
-            {
-                addNewPopup();
-            }
+            
         }
     }
 }
