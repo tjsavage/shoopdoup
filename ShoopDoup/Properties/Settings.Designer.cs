@@ -11,7 +11,6 @@
 namespace ShoopDoup.Properties
 {
 
-
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "10.0.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase
@@ -24,6 +23,36 @@ namespace ShoopDoup.Properties
             get
             {
                 return defaultInstance;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0,0,0,0")]
+        public global::System.Windows.Rect PrevWinPosition
+        {
+            get
+            {
+                return ((global::System.Windows.Rect)(this["PrevWinPosition"]));
+            }
+            set
+            {
+                this["PrevWinPosition"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int WindowState
+        {
+            get
+            {
+                return ((int)(this["WindowState"]));
+            }
+            set
+            {
+                this["WindowState"] = value;
             }
         }
     }

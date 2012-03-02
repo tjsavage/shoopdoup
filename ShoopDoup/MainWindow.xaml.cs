@@ -22,9 +22,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.Research.Kinect.Nui;
+using Microsoft.Research.Kinect.Audio;
 using Coding4Fun.Kinect.Wpf;
 using ShoopDoup.ViewControllers;
+using NetGame;
+using NetGame.Utils;
+using NetGame.Speech;
 using ShoopDoup;
+using ShoopDoup.Models;
 
 namespace ShoopDoup
 {
@@ -47,7 +52,19 @@ namespace ShoopDoup
         {
             SetupKinect();
             currentController = new StandbyController(); // new WhackAMoleController(minigameFactory.getMinigameOfType(Models.MINIGAME_TYPE.Association)); 
+            currentController.parentController = this;
             this.Content = currentController;
+
+            minigameFactory = new MinigameFactory();
+            minigameFactory.mainController = this;
+        }
+
+        public void controllerFinished()
+        {
+            Console.WriteLine("A controller finished.");
+            Minigame newGame = minigameFactory.getDefaultMinigame();
+            this.Content = newGame.getController();
+            newGame.start();
         }
 
         private void SetupKinect()
@@ -67,6 +84,7 @@ namespace ShoopDoup
                 nui.Initialize(RuntimeOptions.UseSkeletalTracking);
 
                 //add event to receive skeleton data
+                //nui.SkeletonFrameReady += new EventHandler<SkeletonFrameReadyEventArgs>(nui_SkeletonFrameReady);
                 nui.SkeletonFrameReady += new EventHandler<SkeletonFrameReadyEventArgs>(nui_SkeletonFrameReady);
 
                 //to experiment, toggle TransformSmooth between true & false
@@ -86,7 +104,7 @@ namespace ShoopDoup
         void nui_SkeletonFrameReady(object sender, SkeletonFrameReadyEventArgs e)
         {
 
-            SkeletonFrame allSkeletons = e.SkeletonFrame;
+            SkeletonFrame allSkeletons= e.SkeletonFrame;
 
             //get the first tracked skeleton
             SkeletonData skeleton = (from s in allSkeletons.Skeletons
