@@ -102,6 +102,7 @@ namespace ShoopDoup.ViewControllers
                 bubbleTimer.Stop();
                 gameTimer.Stop();
                 removeTimer.Stop();
+                ReturnToStandbyController();
             }
         }
 
@@ -245,6 +246,7 @@ namespace ShoopDoup.ViewControllers
 
         public override void updateWithoutSkeleton()
         {
+            ReturnToStandbyController();
         }
     }
 }

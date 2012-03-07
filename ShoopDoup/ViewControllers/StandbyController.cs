@@ -130,7 +130,8 @@ namespace ShoopDoup.ViewControllers
             if (currentImage.Opacity < .04)
             {
                 fadeTimer.IsEnabled = false;
-                parentController.controllerFinished();
+                ReturnToStandbyController();
+                //parentController.controllerFinished();
             }
         }
 

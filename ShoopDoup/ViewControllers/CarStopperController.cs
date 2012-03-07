@@ -290,7 +290,7 @@ namespace ShoopDoup.ViewControllers
 
         public override void updateWithoutSkeleton()
         {
-
+            ReturnToStandbyController();
         }
 
         private void moveToNextState(object sender, EventArgs e)
