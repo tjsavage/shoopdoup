@@ -47,16 +47,23 @@ namespace ShoopDoup
         Runtime nui;
         public SceneController currentController;
         MinigameFactory minigameFactory;
+        List<Type> minigameControllers;
+        Random randomGenerator = new Random();
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             SetupKinect();
             minigameFactory = new MinigameFactory();
             minigameFactory.mainController = this;
-            currentController = new CarStopperController(minigameFactory.getMinigameOfType(MINIGAME_TYPE.Association));//new StandbyController(); // new WhackAMoleController(minigameFactory.getMinigameOfType(Models.MINIGAME_TYPE.Association)); 
+
+            currentController = new StandbyController();// new CarStopperController(minigameFactory.getMinigameOfType(MINIGAME_TYPE.Association));//new StandbyController(); // new WhackAMoleController(minigameFactory.getMinigameOfType(Models.MINIGAME_TYPE.Association)); 
             currentController.ControllerFinished += switchMinigame;
             currentController.parentController = this;
             this.Content = currentController;
+
+            minigameControllers = new List<Type>();
+            minigameControllers.Add(typeof(CarStopperController));
+            minigameControllers.Add(typeof(PopTheBubblesController));
 
 
         }
@@ -75,7 +82,28 @@ namespace ShoopDoup
         public void switchMinigame(object o, EventArgs e)
         {
             Console.WriteLine("Switching now!");
-            currentController = new StandbyController();
+            if (currentController is StandbyController)
+            {
+                int randomControllerIndex = randomGenerator.Next(minigameControllers.Count);
+                
+                switch (randomControllerIndex)
+                {
+                    case 0:
+                        currentController = new CarStopperController(minigameFactory.getMinigameOfType(MINIGAME_TYPE.Association));
+                        break;
+                    case 1:
+                        currentController = new PopTheBubblesController(minigameFactory.getMinigameOfType(MINIGAME_TYPE.Association));
+                        break;
+                }
+                //currentController = //new CarStopperController(minigameFactory.getMinigameOfType(MINIGAME_TYPE.Association));
+
+            }
+            else
+            {
+                currentController = new StandbyController();
+            }
+
+            currentController.ControllerFinished += switchMinigame;
             this.Content = currentController;
         }
 
