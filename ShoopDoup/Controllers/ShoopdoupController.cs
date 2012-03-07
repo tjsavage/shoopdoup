@@ -5,7 +5,9 @@ using System.Text;
 
 namespace ShoopDoup.Controllers
 {
+
     class ShoopdoupController
     {
+
     }
 }

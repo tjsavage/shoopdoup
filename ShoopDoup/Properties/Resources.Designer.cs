@@ -130,6 +130,13 @@ namespace ShoopDoup.Properties {
             }
         }
         
+        internal static System.Drawing.Bitmap TrafficLaneBackGround {
+            get {
+                object obj = ResourceManager.GetObject("TrafficLaneBackGround", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         internal static System.Drawing.Bitmap WelcomeAttention {
             get {
                 object obj = ResourceManager.GetObject("WelcomeAttention", resourceCulture);

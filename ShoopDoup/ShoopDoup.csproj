@@ -39,7 +39,10 @@
     <Reference Include="Coding4Fun.Kinect.Wpf">
       <HintPath>.\Coding4Fun.Kinect.Wpf.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Research.Kinect, Version=1.0.0.45, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.Research.Kinect, Version=1.0.0.45, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>.\Microsoft.Research.Kinect.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Samples.Kinect.WpfViewers">
       <HintPath>.\Microsoft.Samples.Kinect.WpfViewers.dll</HintPath>
     </Reference>
@@ -71,7 +74,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="CarStopper.cs" />
+    <Compile Include="ViewControllers\CarStopperController.cs" />
     <Compile Include="Models\DataObject.cs" />
     <Compile Include="Models\Minigame.cs" />
     <Compile Include="MinigameFactory.cs" />
@@ -155,6 +158,10 @@
     <Resource Include="Assets\CarStopperMotorcycle.png" />
     <Resource Include="Assets\CarStopperSUV.png" />
     <Resource Include="Assets\CarStopperTruck.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Microsoft.Research.Kinect.dll" />
+    <None Include="Resources\TrafficLaneBackGround.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

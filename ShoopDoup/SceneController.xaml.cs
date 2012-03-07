@@ -47,5 +47,12 @@ namespace ShoopDoup
         }
 
         public virtual void start() { }
+
+        public virtual event EventHandler ControllerFinished;
+
+        public void ReturnToStandbyController()
+        {
+            ControllerFinished(this, null);
+        }
     }
 }

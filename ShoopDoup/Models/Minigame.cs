@@ -63,6 +63,7 @@ namespace ShoopDoup.Models
                 DataObject ndo = new DataObject((JObject)((JArray)dataModel["response"])[i]);
                 list.Add(ndo);
             }
+            Console.WriteLine("what");
         }
 
         public void setTitle(String t)

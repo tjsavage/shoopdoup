@@ -51,22 +51,32 @@ namespace ShoopDoup
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             SetupKinect();
-            currentController = new StandbyController(); // new WhackAMoleController(minigameFactory.getMinigameOfType(Models.MINIGAME_TYPE.Association)); 
+            minigameFactory = new MinigameFactory();
+            minigameFactory.mainController = this;
+            currentController = new CarStopperController(minigameFactory.getMinigameOfType(MINIGAME_TYPE.Association));//new StandbyController(); // new WhackAMoleController(minigameFactory.getMinigameOfType(Models.MINIGAME_TYPE.Association)); 
+            currentController.ControllerFinished += switchMinigame;
             currentController.parentController = this;
             this.Content = currentController;
 
-            //minigameFactory = new MinigameFactory();
-            //minigameFactory.mainController = this;
+
         }
 
         public void controllerFinished()
         {
             Console.WriteLine("A controller finished.");
-            Minigame newGame = minigameFactory.getDefaultMinigame();
-            currentController = newGame.getController();
-            currentController.parentController = this;
-            this.Content = newGame.getController();
-            newGame.start();
+
+            //Minigame newGame = minigameFactory.getDefaultMinigame();
+            //currentController = newGame.getController();
+            //currentController.parentController = this;
+            //this.Content = newGame.getController();
+            //newGame.start();
+        }
+
+        public void switchMinigame(object o, EventArgs e)
+        {
+            Console.WriteLine("Switching now!");
+            currentController = new StandbyController();
+            this.Content = currentController;
         }
 
         private void SetupKinect()

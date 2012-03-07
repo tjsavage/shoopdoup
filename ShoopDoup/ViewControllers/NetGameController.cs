@@ -132,12 +132,12 @@ namespace ShoopDoup.ViewControllers
             myNet.Visibility = System.Windows.Visibility.Hidden;
             playfield.Visibility = System.Windows.Visibility.Hidden;
 
-            speechRecognizer = SpeechRecognizer.Create();         //returns null if problem with speech prereqs or instantiation.
+            /*speechRecognizer = SpeechRecognizer.Create();         //returns null if problem with speech prereqs or instantiation.
             if (speechRecognizer != null)
             {
                 speechRecognizer.Start(new KinectAudioSource());  //KinectSDK TODO: expose Runtime.AudioSource to return correct audiosource.
                 speechRecognizer.SaidSomething += new EventHandler<SpeechRecognizer.SaidSomethingEventArgs>(recognizer_SaidSomething);
-            }
+            }*/
             
         }
 
