@@ -11,6 +11,7 @@ using Microsoft.Research.Kinect.Nui;
 using Coding4Fun.Kinect.Wpf;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Animation;
+using ShoopDoup.Models;
 
 
 namespace ShoopDoup.ViewControllers
@@ -33,6 +34,7 @@ namespace ShoopDoup.ViewControllers
     class PopTheBubblesController : SceneController
     {
 
+        private Minigame minigame;
         private enum GAME_STATE { Instruction, GamePlay, GameOver };
         private System.Windows.Controls.Image background;
         private System.Windows.Controls.Image leftHandCursor;
@@ -47,20 +49,38 @@ namespace ShoopDoup.ViewControllers
         private Label timerLabel;
         private int score;
         private Label scoreLabel;
+        private Label associateWithLabel;
         private static int REMOVE_INTERVAL = 2000;
         private static int ADD_INTERVAL = 1000;
+        private double highlightedHandBaseDepth;
+        private double depthDeltaForSelection = .3;
 
-        public PopTheBubblesController()
+        public PopTheBubblesController(Minigame game)
         {
+            this.minigame = game;
             bubbles = new List<Bubble>();
             LoadScore();
             LoadBackground();
             LoadCursors();
+            SetAssociateLabel();
             SetTimerLabel();
             StartGameTimer();
             StartBubbleTimer();
             StartRemoveTimer();
         }
+
+       private void SetAssociateLabel()
+        {
+            this.associateWithLabel = new Label();
+            associateWithLabel.FontSize = 40;
+            associateWithLabel.Foreground = System.Windows.Media.Brushes.White;
+            associateWithLabel.Content = "Germany";
+            mainCanvas.Children.Add(associateWithLabel);
+            Canvas.SetTop(associateWithLabel, 0);
+            Canvas.SetLeft(associateWithLabel, 300);
+            Canvas.SetZIndex(associateWithLabel, 4);
+        }
+
 
         private void LoadScore()
         {
@@ -182,10 +202,26 @@ namespace ShoopDoup.ViewControllers
 
         }
 
+        private int getBubble(int x, int y)
+        {
+            for (int i = 0; i < bubbles.Count; i++)
+            {
+                if (x >= bubbles[i].x && x <= bubbles[i].x + 100 && y >= bubbles[i].y && y <= bubbles[i].y + 100)
+                {
+                    return i;
+                }
+            }
+            return (-1);
+
+        }
+
         private void bubblePopup(object sender, EventArgs e)
         {
             if (bubbles.Count <= MAX_BUBBLES)
             {
+                int minigameRandom = randomGen.Next(0,minigame.getData().Count-1);
+                String text = minigame.getData()[minigameRandom].getElementValue();
+
                 System.Windows.Controls.Image bubble = new System.Windows.Controls.Image();
                 bubble.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.bubble);
                 bubble.Width = 100;
@@ -204,7 +240,17 @@ namespace ShoopDoup.ViewControllers
                 }
 
                 Label label = new Label();
-                label.Content = new TextBlock();
+                TextBlock bubbleTextBlock = new TextBlock();
+                bubbleTextBlock.Text = text;
+                Viewbox bubbleViewBox = new Viewbox();
+                bubbleViewBox.Stretch = Stretch.Uniform;
+                bubbleViewBox.Height = 80;
+                bubbleViewBox.Width = 80;
+                bubbleViewBox.Child = bubbleTextBlock;
+                label.Content = bubbleViewBox;
+
+
+                /*label.Content = new TextBlock();
                 label.Height = 100;
                 label.Width = 100;
                 ((TextBlock)label.Content).Text = "South Africaaaaaaaa";
@@ -212,16 +258,15 @@ namespace ShoopDoup.ViewControllers
                 ((TextBlock)label.Content).FontSize = 20;
                 label.HorizontalAlignment = HorizontalAlignment.Center;
                 ((TextBlock)label.Content).VerticalAlignment = VerticalAlignment.Center;
-                //label.FontSize = 20;
+                //label.FontSize = 20;*/
 
-                
                 mainCanvas.Children.Add(label);
                 
                 Canvas.SetTop(bubble, y);
                 Canvas.SetLeft(bubble, x);
                 Canvas.SetZIndex(bubble, 2);
-                Canvas.SetTop(label, y);
-                Canvas.SetLeft(label, x);
+                Canvas.SetTop(label, y+5);
+                Canvas.SetLeft(label, x+5);
                 Canvas.SetZIndex(label, 3);
                 Bubble newBubble = new Bubble(x, y, bubble,label);
                 bubbles.Add(newBubble);
@@ -231,16 +276,45 @@ namespace ShoopDoup.ViewControllers
 
         public override void updateSkeleton(SkeletonData skeleton)
         {
-            /*
-            if (rightHandCursor.Visibility == System.Windows.Visibility.Hidden)
-            {
-                rightHandCursor.Visibility = System.Windows.Visibility.Visible;
-                leftHandCursor.Visibility = System.Windows.Visibility.Visible;
-            }*/
+            highlightedHandBaseDepth = skeleton.Joints[JointID.Spine].ScaleTo(640, 480, .5f, .5f).Position.Z;
+            
+            Joint rightHand = skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f);
+            Joint leftHand = skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f);
+
             Canvas.SetTop(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.Y);
             Canvas.SetLeft(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.X);
             Canvas.SetTop(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.Y);
             Canvas.SetLeft(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.X);
+
+            int x1 = Convert.ToInt32(Canvas.GetLeft(rightHandCursor));
+            int y1 = Convert.ToInt32(Canvas.GetTop(rightHandCursor));
+            int x2 = Convert.ToInt32(Canvas.GetLeft(leftHandCursor));
+            int y2 = Convert.ToInt32(Canvas.GetTop(leftHandCursor));
+            int hit1 = getBubble(x1, y1);
+            int hit2 = getBubble(x2, y2);
+
+            if (hit1 != (-1))
+            {
+                if (Math.Abs(rightHand.Position.Z - highlightedHandBaseDepth) > depthDeltaForSelection)
+                {
+                    mainCanvas.Children.Remove(bubbles[hit1].bubble);
+                    mainCanvas.Children.Remove(bubbles[hit1].bubbleLabel);
+                    bubbles.RemoveAt(hit1);
+                    score++;
+                    scoreLabel.Content = "SCORE: " + score;
+                }
+            }
+            if (hit2 != (-1))
+            {
+                if (Math.Abs(leftHand.Position.Z - highlightedHandBaseDepth) > depthDeltaForSelection)
+                {
+                    mainCanvas.Children.Remove(bubbles[hit2].bubble);
+                    mainCanvas.Children.Remove(bubbles[hit2].bubbleLabel);
+                    bubbles.RemoveAt(hit2);
+                    score++;
+                    scoreLabel.Content = "SCORE: " + score;
+                }
+            }
         }
 
         public override void updateWithoutSkeleton()
