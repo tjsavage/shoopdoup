@@ -160,6 +160,8 @@
     <Resource Include="Assets\CarStopperTruck.png" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Assets\background.png" />
+    <Resource Include="Assets\fish.png" />
     <Content Include="Microsoft.Research.Kinect.dll" />
     <None Include="Resources\TrafficLaneBackGround.png" />
   </ItemGroup>
