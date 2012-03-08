@@ -114,7 +114,7 @@ namespace ShoopDoup.ViewControllers
                 playerActiveTime = DateTime.UtcNow;
             }
 
-            if (state == STANDBY_STATE.Attention && (DateTime.UtcNow - playerActiveTime).Seconds > 5)
+            if (state == STANDBY_STATE.Attention && (DateTime.UtcNow - playerActiveTime).Seconds > 3)
             {
                 fadeTimer.IsEnabled = true;
             }
