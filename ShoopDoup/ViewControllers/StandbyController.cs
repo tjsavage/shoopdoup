@@ -114,7 +114,7 @@ namespace ShoopDoup.ViewControllers
                 playerActiveTime = DateTime.UtcNow;
             }
 
-            if (state == STANDBY_STATE.Attention && (DateTime.UtcNow - playerActiveTime).Seconds > 5)
+            if (state == STANDBY_STATE.Attention && (DateTime.UtcNow - playerActiveTime).Seconds > 3)
             {
                 fadeTimer.IsEnabled = true;
             }
@@ -130,7 +130,8 @@ namespace ShoopDoup.ViewControllers
             if (currentImage.Opacity < .04)
             {
                 fadeTimer.IsEnabled = false;
-                parentController.controllerFinished();
+                ReturnToStandbyController();
+                //parentController.controllerFinished();
             }
         }
 

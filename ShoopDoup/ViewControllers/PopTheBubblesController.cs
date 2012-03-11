@@ -473,7 +473,7 @@ namespace ShoopDoup.ViewControllers
 
         public override void updateWithoutSkeleton()
         {
-            //ReturnToStandbyController();
+            ReturnToStandbyController();
         }
     }
 }
