@@ -283,7 +283,6 @@ namespace ShoopDoup.ViewControllers
                             }
                             else
                             {
-                                rightHandCursor.Opacity = .2;
                                 carTextBlock.Foreground = System.Windows.Media.Brushes.Red;
                             }
 
@@ -469,6 +468,11 @@ namespace ShoopDoup.ViewControllers
         private void controllerFinished(object o, EventArgs e)
         {
             exitTimer.Stop();
+            introCarTimer.Stop();
+            introCarAnimatorTimer.Stop();
+            transitionTimer.Stop();
+            fadeTimer.Stop();
+            userExitedTimer.Stop();
             ReturnToStandbyController();
         }
 
