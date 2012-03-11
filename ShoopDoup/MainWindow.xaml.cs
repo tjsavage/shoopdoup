@@ -56,7 +56,7 @@ namespace ShoopDoup
             minigameFactory = new MinigameFactory();
             minigameFactory.mainController = this;
 
-            currentController = new StandbyController();// new CarStopperController(minigameFactory.getMinigameOfType(MINIGAME_TYPE.Association));//new StandbyController(); // new WhackAMoleController(minigameFactory.getMinigameOfType(Models.MINIGAME_TYPE.Association)); 
+            currentController = new PopTheBubblesController(minigameFactory.getMinigameOfType(MINIGAME_TYPE.Association));//new StandbyController(); // new WhackAMoleController(minigameFactory.getMinigameOfType(Models.MINIGAME_TYPE.Association)); 
             currentController.ControllerFinished += switchMinigame;
             currentController.parentController = this;
             this.Content = currentController;
