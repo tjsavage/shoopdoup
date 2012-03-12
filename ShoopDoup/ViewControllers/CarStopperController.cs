@@ -12,13 +12,14 @@ using Coding4Fun.Kinect.Wpf;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Animation;
 using ShoopDoup.Models;
+using System.Drawing.Drawing2D;
 
 
 namespace ShoopDoup.ViewControllers
 {
     class CarStopperController : SceneController
     {
-        private enum GAME_STATE {Intro, Playing, Exit};
+        private enum GAME_STATE {Intro, Instructions, Playing, Exit};
 
         struct Car
         {
@@ -83,7 +84,7 @@ namespace ShoopDoup.ViewControllers
 
         private System.Windows.Shapes.Rectangle[,] grid = new System.Windows.Shapes.Rectangle[3,3];
 
-        private int[] laneHeights = {50, 130, 210, 290, 370};
+        private int[] laneHeights = {125, 250, 375, 500, 625};
 
 
         public CarStopperController(Minigame game)
@@ -92,6 +93,8 @@ namespace ShoopDoup.ViewControllers
             minigame = game;
             introTitle = minigame.getTitle();
             introDescription = minigame.getDescription();
+
+            carDictionary = new Dictionary<String, Car>();
 
             Console.WriteLine(minigame.getData().Count);
             int randomElementIndex = randomGen.Next(minigame.getData().Count);
@@ -118,7 +121,7 @@ namespace ShoopDoup.ViewControllers
             this.fadeTimer.IsEnabled = false;
 
             this.carTimer = new System.Windows.Threading.DispatcherTimer();
-            this.carTimer.Tick += moveCar;
+            this.carTimer.Tick += moveCars;
             this.carTimer.Interval = TimeSpan.FromMilliseconds(20);
 
             this.exitTimer = new System.Windows.Threading.DispatcherTimer();
@@ -131,10 +134,10 @@ namespace ShoopDoup.ViewControllers
 
             this.introCarTimer = new System.Windows.Threading.DispatcherTimer();
             this.introCarTimer.Tick += addNewInstructionCar;
-            this.introCarTimer.Interval = TimeSpan.FromMilliseconds(1900);
+            this.introCarTimer.Interval = TimeSpan.FromMilliseconds(2600);
 
             this.introCarAnimatorTimer = new System.Windows.Threading.DispatcherTimer();
-            this.introCarAnimatorTimer.Tick += moveIntroCar;
+            this.introCarAnimatorTimer.Tick += moveCars;
             this.introCarAnimatorTimer.Interval = TimeSpan.FromMilliseconds(20);
 
             rightHandCursor = new System.Windows.Controls.Image();
@@ -149,7 +152,8 @@ namespace ShoopDoup.ViewControllers
 
             trafficBackgroundImage = new System.Windows.Controls.Image();
             trafficBackgroundImage.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.TrafficLaneBackGround);
-            trafficBackgroundImage.Width = 800;
+            trafficBackgroundImage.Width = 1280;
+            trafficBackgroundImage.Height = 800;
             trafficBackgroundImage.Opacity = 0;
 
             rightHandCursor.Opacity = 0;
@@ -243,7 +247,7 @@ namespace ShoopDoup.ViewControllers
 
         public override void updateSkeleton(SkeletonData skeleton)
         {
-            highlightedHandBaseDepth = skeleton.Joints[JointID.Spine].ScaleTo(640, 480, .5f, .5f).Position.Z;
+            highlightedHandBaseDepth = skeleton.Joints[JointID.Spine].ScaleTo(1200, 800, .5f, .5f).Position.Z;
 
             if (userExitedTimer.IsEnabled)
             {
@@ -252,79 +256,101 @@ namespace ShoopDoup.ViewControllers
 
             if (state == GAME_STATE.Playing)
             {
-                Joint rightHand = skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f);
-                Joint leftHand = skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f);
+                Joint rightHand = skeleton.Joints[JointID.HandRight].ScaleTo(1280, 800, .5f, .5f);
+                Joint leftHand = skeleton.Joints[JointID.HandLeft].ScaleTo(1280, 800, .5f, .5f);
 
-                Canvas.SetTop(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.Y);
-                Canvas.SetLeft(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.X);
-                Canvas.SetTop(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.Y);
-                Canvas.SetLeft(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.X);
+                double rightHandScale = skeleton.Joints[JointID.HandRight].Position.Z / highlightedHandBaseDepth;
+                double leftHandScale = skeleton.Joints[JointID.HandLeft].Position.Z / highlightedHandBaseDepth;
 
-                if (carLabel != null)
+                rightHandCursor.Height = 100 * rightHandScale;
+                rightHandCursor.Width = 100 * rightHandScale;
+
+                leftHandCursor.Height = 100 * leftHandScale;
+                leftHandCursor.Width = 100 * leftHandScale;
+
+                Canvas.SetTop(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(1280, 800, .5f, .5f).Position.Y);
+                Canvas.SetLeft(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(1280, 800, .5f, .5f).Position.X);
+                Canvas.SetTop(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(1280, 800, .5f, .5f).Position.Y);
+                Canvas.SetLeft(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(1280, 800, .5f, .5f).Position.X);
+
+
+                List<String> toRemove = new List<String>();
+
+                foreach(String key in carDictionary.Keys)
                 {
-                    TextBlock carTextBlock = ((TextBlock)((Viewbox)carLabel.Content).Child);
-                    double deltaX_right = Math.Abs(Canvas.GetLeft(rightHandCursor) - Canvas.GetLeft(carLabel));
-                    double deltaY_right = Math.Abs(Canvas.GetTop(rightHandCursor) - Canvas.GetTop(carLabel));
+                    Car curCar = carDictionary[key];
+                    Label curLabel = curCar.carLabel;
+                    System.Windows.Controls.Image curImage = curCar.carImage;
+                    TextBlock curTextBlock = (TextBlock)((Viewbox)curLabel.Content).Child;
 
-                    double deltaX_left = Math.Abs(Canvas.GetLeft(leftHandCursor) - Canvas.GetLeft(carLabel));
-                    double deltaY_left = Math.Abs(Canvas.GetTop(leftHandCursor) - Canvas.GetTop(carLabel));
+                    double deltaX_right = Math.Abs(Canvas.GetLeft(rightHandCursor) - Canvas.GetLeft(curImage));
+                    double deltaY_right = Math.Abs(Canvas.GetTop(rightHandCursor) - Canvas.GetTop(curImage));
+
+                    double deltaX_left = Math.Abs(Canvas.GetLeft(leftHandCursor) - Canvas.GetLeft(curImage));
+                    double deltaY_left = Math.Abs(Canvas.GetTop(leftHandCursor) - Canvas.GetTop(curImage));
 
                     //If we have a hit in a reasonable range, highlight the target
-                    if (deltaX_right < 100 && deltaY_right < 100)
+                    if (deltaX_right < 200 && deltaY_right < 200)
                     {
                         //Console.WriteLine("Right hand: " + rightHand.Position.Z + " \t Chest: " + highlightedHandBaseDepth);
                         if (Math.Abs(rightHand.Position.Z - highlightedHandBaseDepth) > depthDeltaForSelection)
                         {
-                            if (carTextBlock.Foreground == System.Windows.Media.Brushes.Yellow)
+                            if (curTextBlock.Foreground == System.Windows.Media.Brushes.Yellow)
                             {
-                                changeCar(null, null);
-                                carsStopped++;
-                                ((TextBlock)scoreLabel.Content).Text = "Cars Stopped: " + carsStopped;
+                                toRemove.Add(key);
                             }
                             else
                             {
-                                rightHandCursor.Opacity = .2;
-                                carTextBlock.Foreground = System.Windows.Media.Brushes.Red;
+                                curTextBlock.Foreground = System.Windows.Media.Brushes.Red;
                             }
 
                         }
                         else
                         {
-                            carTextBlock.Foreground = System.Windows.Media.Brushes.Yellow;
+                            curTextBlock.Foreground = System.Windows.Media.Brushes.Yellow;
                         }
                     }
-                    else if (deltaX_left < 100 && deltaY_left < 100)
+                    else if (deltaX_left < 200 && deltaY_left < 200)
                     {
                         //Console.WriteLine("Right hand: " + rightHand.Position.Z + " \t Chest: " + highlightedHandBaseDepth);
                         if (Math.Abs(leftHand.Position.Z - highlightedHandBaseDepth) > depthDeltaForSelection)
                         {
-                            if (carTextBlock.Foreground == System.Windows.Media.Brushes.Yellow)
+                            if (curTextBlock.Foreground == System.Windows.Media.Brushes.Yellow)
                             {
-                                changeCar(null, null);
-                                carsStopped++;
-                                ((TextBlock)scoreLabel.Content).Text = "Cars Stopped: " + carsStopped;
+                                toRemove.Add(key);
                             }
                             else
                             {
-                                carTextBlock.Foreground = System.Windows.Media.Brushes.Red;
+                                curTextBlock.Foreground = System.Windows.Media.Brushes.Red;
                             }
 
                         }
                         else
                         {
-                            carTextBlock.Foreground = System.Windows.Media.Brushes.Yellow;
+                            curTextBlock.Foreground = System.Windows.Media.Brushes.Yellow;
                         }
                     }
                     else
                     {
-                        carTextBlock.Foreground = System.Windows.Media.Brushes.Black;
+                        curTextBlock.Foreground = System.Windows.Media.Brushes.Black;
                     }
                 }
-                else
+
+                for (int i = 0; i < toRemove.Count; i++)
+                {
+                    removeCar(toRemove[i]);
+                    carDictionary.Remove(toRemove[i]);
+                    carsStopped++;
+                    currentcarDataIndex++;
+                    ((TextBlock)scoreLabel.Content).Text = "Cars Stopped: " + carsStopped;
+                    addNewCar();
+
+                }
+                /*else
                 {
                     rightHandCursor.Opacity = .68;
                     leftHandCursor.Opacity = .68;
-                }
+                }*/
             }
         }
 
@@ -354,23 +380,24 @@ namespace ShoopDoup.ViewControllers
         {
             numFaderTicks++;
 
-            /*if (state == GAME_STATE.Instructions)
-            {
-                introTitleLabel.Opacity -= .04;
-                introDescriptionLabel.Opacity -= .04;
-                ((TextBlock)instructionLabel.Content).Opacity += .04;
-            }*/
-            if (state == GAME_STATE.Playing)
+            if (state == GAME_STATE.Instructions)
             {
                 introTitleLabel.Opacity -= .04;
                 introDescriptionLabel.Opacity -= .04;
 
-                ((TextBlock)instructionLabel.Content).Opacity -= .04;
+                ((TextBlock)baseLabel.Content).Opacity += .04;
+                trafficBackgroundImage.Opacity += .03;
+            }
+            else if (state == GAME_STATE.Playing)
+            {
+                //introTitleLabel.Opacity -= .04;
+                //introDescriptionLabel.Opacity -= .04;
+
                 leftHandCursor.Opacity += .02;
                 rightHandCursor.Opacity += .02;
                 ((TextBlock)scoreLabel.Content).Opacity += .04;
-                ((TextBlock)baseLabel.Content).Opacity += .04;
-                trafficBackgroundImage.Opacity += .03;
+                // ((TextBlock)baseLabel.Content).Opacity += .04;
+                //trafficBackgroundImage.Opacity += .03;
             }
             else if (state == GAME_STATE.Exit)
             {
@@ -387,9 +414,14 @@ namespace ShoopDoup.ViewControllers
                 numFaderTicks = 0;
                 fadeTimer.Stop();
 
-                if (state == GAME_STATE.Playing)
+                if (state == GAME_STATE.Instructions)
                 {
                     runIntro();
+                }
+                else if (state == GAME_STATE.Playing)
+                {
+                    addNewCar();
+                    carTimer.Start();
                 }
                 else if (state == GAME_STATE.Exit)
                 {
@@ -404,7 +436,12 @@ namespace ShoopDoup.ViewControllers
 
         private void addNewCar()
         {
-            carBitmapImage = this.toBitmapImage(carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)));
+
+            double randomY = laneHeights[randomGen.Next(4)];
+
+
+            addCarAt(-300, randomY, minigame.getData().ElementAt(currentcarDataIndex).getElementValue(), carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), true);
+            /*carBitmapImage = this.toBitmapImage(carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)));
             carImage = new System.Windows.Controls.Image();
             carImage.Source = carBitmapImage;
             carImage.MaxHeight = 100;
@@ -430,45 +467,28 @@ namespace ShoopDoup.ViewControllers
             Canvas.SetTop(carLabel, randomY);
             Canvas.SetLeft(carImage, 0);
             Canvas.SetTop(carImage, randomY + 10);
-            mainCanvas.Children.Add(carLabel);
+            mainCanvas.Children.Add(carLabel);*/
 
-            Canvas.SetZIndex(carLabel, 2);
-            Canvas.SetZIndex(carImage, Canvas.GetZIndex(carLabel) - 1);
+            //Canvas.SetZIndex(carLabel, 2);
+            //Canvas.SetZIndex(carImage, Canvas.GetZIndex(carLabel) - 1);
         }
 
-        private void changeCar(object sender, EventArgs e)
+        private void removeCar(String key)
         {
-            mainCanvas.Children.Remove(carLabel);
-            mainCanvas.Children.Remove(carImage);
-            currentcarDataIndex++;
+            Car toRemove = carDictionary[key];
 
-            if (currentcarDataIndex >= minigame.getData().Count)
-            {
-                moveToNextState(null, null);
-                carTimer.Stop();
-            }
-            else
-            {
-                addNewCar();
-            }
-        }
-
-        private void moveCar(object sender, EventArgs e)
-        {
-            if (Canvas.GetLeft(carLabel) >= mainCanvas.ActualWidth)
-            {
-                changeCar(null, null);
-            }
-            else
-            {
-                Canvas.SetLeft(carLabel, Canvas.GetLeft(carLabel) + 5);
-                Canvas.SetLeft(carImage, Canvas.GetLeft(carImage) + 5);
-            }
+            mainCanvas.Children.Remove(toRemove.carImage);
+            mainCanvas.Children.Remove(toRemove.carLabel);
         }
 
         private void controllerFinished(object o, EventArgs e)
         {
             exitTimer.Stop();
+            introCarTimer.Stop();
+            introCarAnimatorTimer.Stop();
+            transitionTimer.Stop();
+            fadeTimer.Stop();
+            userExitedTimer.Stop();
             ReturnToStandbyController();
         }
 
@@ -479,7 +499,7 @@ namespace ShoopDoup.ViewControllers
 
         private void runInstructions()
         {
-            carDictionary = new Dictionary<String, Car>();
+
             this.introCarTimer.Start();
             this.introCarAnimatorTimer.Start();
         }
@@ -491,61 +511,67 @@ namespace ShoopDoup.ViewControllers
             switch(numIntroCarTimerTicks)
             {
                 case 1:
-                    addCarAt(-70, laneHeights[1], "that", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)));
-                    addCarAt(-70, laneHeights[2], "top word", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)));
-                    //addCarAt(-70, laneHeights[3], "similar", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)));
+                    addCarAt(-300, laneHeights[1], "vehicles", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), false);
+                    addCarAt(-300, laneHeights[2], "similar", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), false);
+                    addCarAt(-300, laneHeights[3], "word", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), false);
                     break;
                 case 2:
-                    addCarAt(-70, laneHeights[1], "vehicles", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)));
-                    addCarAt(-70, laneHeights[2], "match the", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)));
-                    //addCarAt(-70, laneHeights[3], "don't", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)));
+                    addCarAt(-300, laneHeights[1], "over", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), false);
+                    addCarAt(-300, laneHeights[2], "aren't", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), false);
+                    addCarAt(-300, laneHeights[3], "above", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), false);
                     break;
                 case 3:
-                    addCarAt(-70, laneHeights[1], "pull over", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)));
-                    addCarAt(-70, laneHeights[2], "don't", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)));
-                    //addCarAt(-70, laneHeights[3], "word", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)));
+                    addCarAt(-300, laneHeights[1], "pull ", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), false);
+                    addCarAt(-300, laneHeights[2], "that", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), false);
+                    addCarAt(-300, laneHeights[3], "to the", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), false);
                     break;
             }
 
             if (carDictionary.Count == 0)
             {
                 introCarTimer.Stop();
-                addNewCar();
-                carTimer.Start();
+                introCarAnimatorTimer.Stop();
+                moveToNextState(null, null);
             }
         }
 
-        private void addCarAt(double x, double y, String label, Bitmap carBitmap)
+        private void addCarAt(double x, double y, String label, Bitmap carBitmap,bool shouldStrechText)
         {
             BitmapImage bitmapImage = this.toBitmapImage(carBitmap);
             System.Windows.Controls.Image image = new System.Windows.Controls.Image();
             image.Source = bitmapImage;
-            image.MaxHeight = 100;
-            image.MaxWidth = 200;
+            image.Height = 150;
+            image.Width = 300;
 
             mainCanvas.Children.Add(image);
 
             Label carLabel = new Label();
             TextBlock carTextBlock = new TextBlock();
             Viewbox carViewbox = new Viewbox();
-            carViewbox.Stretch = Stretch.Uniform;
+
+
             carTextBlock.Text = label;
             carViewbox.Height = 100;
-            carViewbox.Width = 170;
+            carViewbox.Width = 200;
             carViewbox.Child = carTextBlock;
             carLabel.Content = carViewbox;
 
+            if (shouldStrechText)
+            {
+                carViewbox.Stretch = Stretch.Uniform;
+            }
+
             mainCanvas.Children.Add(carLabel);
 
-            Canvas.SetLeft(carLabel, x);
-            Canvas.SetTop(carLabel, y);
+            Canvas.SetLeft(carLabel, x + 30);
+            Canvas.SetTop(carLabel, y + 15);
             Canvas.SetLeft(image, x);
             Canvas.SetTop(image, y);
 
             carDictionary.Add(label, new Car(carLabel,image));
         }
 
-        private void moveIntroCar(object o, EventArgs e)
+        private void moveCars(object o, EventArgs e)
         {
             List<String> toRemove = new List<String>();
 
@@ -563,14 +589,19 @@ namespace ShoopDoup.ViewControllers
                 if (Canvas.GetLeft(curLabel) > mainCanvas.ActualWidth)
                 {
                     toRemove.Add(key);
-                    mainCanvas.Children.Remove(curLabel);
-                    mainCanvas.Children.Remove(curImage);
+                    removeCar(key);
                 }
             }
 
             for (int i = 0; i < toRemove.Count; i++)
             {
                 carDictionary.Remove(toRemove[i]);
+
+                if (state == GAME_STATE.Playing)
+                {
+                    currentcarDataIndex++;
+                    addNewCar();
+                }
             }
         }
 
