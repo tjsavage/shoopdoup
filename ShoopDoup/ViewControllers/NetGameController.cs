@@ -64,34 +64,38 @@ namespace ShoopDoup.ViewControllers
         private System.Windows.Controls.Image leftHandCursor;
         private System.Windows.Controls.Image rightHandCursor;
         private System.Windows.Controls.Image background;
+        private System.Windows.Controls.Label label;
         private System.Windows.Shapes.Line myNet;
         private System.Windows.Shapes.Rectangle startGameRect;
         private System.Windows.Controls.Canvas playfield;
+        private Minigame minigame;
 
         private enum STANDBY_STATE { Instructions, Playing, Exiting };
         private BitmapImage instructionsBitmap;
 
-        private Minigame minigame;
         private int timeLeft;
         private Label timerLabel;
         private int score;
         private Label scoreLabel;
         private System.Windows.Threading.DispatcherTimer gameTimer;
+        private System.Windows.Threading.DispatcherTimer instructionTimer;
+        private int secondsLeft;
 
         #endregion Private State
 
 
         public NetGameController(Minigame game) : base()
         {
-            this.minigame = game;
+            minigame = game;
             start();
         }
             
         public override void start() {
             currentImage = new System.Windows.Controls.Image();
-            state = STANDBY_STATE.Instructions;
-            currentImage.Source = instructionsBitmap;
-            currentImage.Width = 800;
+            //state = STANDBY_STATE.Instructions;
+            currentImage.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.ThinkingUpgame);
+            currentImage.Width = 1280;
+            currentImage.Height = 800;
 
             rightHandCursor = new System.Windows.Controls.Image();
             rightHandCursor.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.HandCursor);
@@ -104,20 +108,25 @@ namespace ShoopDoup.ViewControllers
             leftHandCursor.Width = 100;
 
             playfield = new System.Windows.Controls.Canvas();
-            //playfield.Background = Brushes.CadetBlue;
             playfield.Width = 1440;
             playfield.Height =900;
             UpdatePlayfieldSize();
 
-            startGameRect = new System.Windows.Shapes.Rectangle();
-            startGameRect.Stroke = System.Windows.Media.Brushes.Black;
-            startGameRect.Fill = System.Windows.Media.Brushes.Green;
-            startGameRect.Height = 100;
-            startGameRect.Width = 100;
-            mainCanvas.Children.Add(startGameRect);
-            Canvas.SetTop(startGameRect, 300);
-            Canvas.SetLeft(startGameRect, 320);
-
+            label = new Label();
+            TextBlock bubbleTextBlock = new TextBlock();
+            bubbleTextBlock.Text = "Catch the European Countries!";
+            SolidColorBrush appleColor = new SolidColorBrush();
+            appleColor.Color = Color.FromArgb(255, 227, 50, 50);
+            bubbleTextBlock.Foreground = appleColor;
+            Viewbox bubbleViewBox = new Viewbox();
+            bubbleViewBox.Stretch = Stretch.Uniform;
+            bubbleViewBox.Height = 300;
+            bubbleViewBox.Width = 700;
+            bubbleViewBox.Child = bubbleTextBlock;
+            label.Content = bubbleViewBox;
+            Canvas.SetLeft(label, 450);
+            Canvas.SetTop(label,500);
+            
 
             myNet = new System.Windows.Shapes.Line();
             myNet.Stroke = System.Windows.Media.Brushes.LightSteelBlue;
@@ -132,19 +141,24 @@ namespace ShoopDoup.ViewControllers
             mainCanvas.Children.Add(leftHandCursor);
             mainCanvas.Children.Add(myNet);
             mainCanvas.Children.Add(playfield);
+            mainCanvas.Children.Add(currentImage);
+            mainCanvas.Children.Add(label);
 
 
             Canvas.SetZIndex(rightHandCursor, 2);
             Canvas.SetZIndex(leftHandCursor, 2);
             Canvas.SetZIndex(myNet, 1);
             Canvas.SetZIndex(playfield, 0);
+            Canvas.SetZIndex(currentImage, 0);
+            Canvas.SetZIndex(label, 1);
 
             rightHandCursor.Visibility = System.Windows.Visibility.Hidden;
             leftHandCursor.Visibility = System.Windows.Visibility.Hidden;
             myNet.Visibility = System.Windows.Visibility.Hidden;
             playfield.Visibility = System.Windows.Visibility.Hidden;
 
-            initNetGame();
+            StartInstructionTimer();
+            
 
             /*speechRecognizer = SpeechRecognizer.Create();         //returns null if problem with speech prereqs or instantiation.
             if (speechRecognizer != null)
@@ -160,7 +174,8 @@ namespace ShoopDoup.ViewControllers
             double sceneWidth = mainCanvas.ActualWidth;
             myNet.Visibility = System.Windows.Visibility.Visible;
             playfield.Visibility = System.Windows.Visibility.Visible;
-            startGameRect.Visibility = System.Windows.Visibility.Hidden;
+            label.Visibility = System.Windows.Visibility.Hidden;
+            currentImage.Visibility = System.Windows.Visibility.Hidden;
 
             fallingThings = new FallingThings(MaxShapes, targetFramerate, NumIntraFrames, 1440, 900);
 
@@ -255,6 +270,26 @@ namespace ShoopDoup.ViewControllers
             this.gameTimer.Start();
         }
 
+        private void StartInstructionTimer()
+        {
+            secondsLeft = 8;
+            this.instructionTimer = new System.Windows.Threading.DispatcherTimer();
+            this.instructionTimer.Tick += instructUser;
+            this.instructionTimer.Interval = TimeSpan.FromMilliseconds(1000);
+            this.instructionTimer.Start();
+        }
+
+        private void instructUser(Object sender, EventArgs e)
+        {
+            secondsLeft--;
+            if (secondsLeft == 0)
+            {
+                initNetGame();
+                StartGameTimer();
+                this.instructionTimer.Stop();
+            }
+        }
+
         private void countdown(object sender, EventArgs e)
         {
             timeLeft--;
@@ -275,7 +310,7 @@ namespace ShoopDoup.ViewControllers
             scoreLabel.Foreground = System.Windows.Media.Brushes.Red;
             mainCanvas.Children.Add(scoreLabel);
             Canvas.SetTop(scoreLabel, 700);
-            Canvas.SetLeft(scoreLabel, 1000);
+            Canvas.SetLeft(scoreLabel, 1050);
             Canvas.SetZIndex(scoreLabel, 4);
         }
 
@@ -289,6 +324,17 @@ namespace ShoopDoup.ViewControllers
             Canvas.SetTop(background, -2);
             Canvas.SetLeft(background, 0);
             Canvas.SetZIndex(background, -20);
+
+            Image leaves = new System.Windows.Controls.Image();
+            leaves.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.leaves);
+            leaves.Width = 1280;
+            leaves.Height = 300;
+            mainCanvas.Children.Add(leaves);
+            Canvas.SetTop(leaves, -150);
+            Canvas.SetLeft(leaves, 0);
+            Canvas.SetZIndex(leaves, 200);
+
+
         }
 
         void CheckPlayers()
@@ -363,6 +409,7 @@ namespace ShoopDoup.ViewControllers
 
                 }
                 fallingThings.AdvanceFrame(playfield.Children);
+
             }
 
             // Draw new Wpf scene by adding all objects to canvas

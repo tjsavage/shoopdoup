@@ -137,6 +137,13 @@ namespace ShoopDoup.Properties {
             }
         }
         
+        internal static System.Drawing.Bitmap leaves {
+            get {
+                object obj = ResourceManager.GetObject("leaves", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         internal static System.Drawing.Bitmap ocean {
             get {
                 object obj = ResourceManager.GetObject("ocean", resourceCulture);
@@ -154,6 +161,13 @@ namespace ShoopDoup.Properties {
         internal static System.Drawing.Bitmap OceanBackground {
             get {
                 object obj = ResourceManager.GetObject("OceanBackground", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap ThinkingUpgame {
+            get {
+                object obj = ResourceManager.GetObject("ThinkingUpgame", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
