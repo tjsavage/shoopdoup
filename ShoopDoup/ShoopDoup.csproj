@@ -160,6 +160,8 @@
     <Resource Include="Assets\CarStopperTruck.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\BlueHandCursorX.png" />
+    <None Include="Resources\BlueHandCursor.png" />
     <None Include="Resources\motorcycle.png" />
     <Resource Include="Assets\background.png" />
     <Resource Include="Assets\fish.png" />

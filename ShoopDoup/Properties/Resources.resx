@@ -169,4 +169,10 @@
   <data name="CarStopperMotorcycle" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\motorcycle.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="BlueHandCursor" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BlueHandCursor.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="BlueHandCursorX" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BlueHandCursorX.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

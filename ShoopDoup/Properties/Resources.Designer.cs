@@ -60,6 +60,20 @@ namespace ShoopDoup.Properties {
             }
         }
         
+        internal static System.Drawing.Bitmap BlueHandCursor {
+            get {
+                object obj = ResourceManager.GetObject("BlueHandCursor", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap BlueHandCursorX {
+            get {
+                object obj = ResourceManager.GetObject("BlueHandCursorX", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         internal static System.Drawing.Bitmap bubble {
             get {
                 object obj = ResourceManager.GetObject("bubble", resourceCulture);
