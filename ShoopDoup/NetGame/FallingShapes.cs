@@ -18,6 +18,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using ShoopDoup.Models;
 using Microsoft.Research.Kinect.Nui;
 
 /// <summary>
@@ -335,6 +336,8 @@ namespace NetGame.Utils
         private List<Thing> things = new List<Thing>();
         private List<Image> apples = new List<Image>();
         private List<Label> appleLabels = new List<Label>();
+        private List<String> labelText = new List<String>();
+        private List<String> usedLabels = new List<String>();
         private const double DissolveTime = 0.4;
         private int maxThings = 0;
         private Rect sceneRect;
@@ -369,6 +372,39 @@ namespace NetGame.Utils
             sceneRect.Height = sceneHeight;
             shapeSize = sceneRect.Height * baseShapeSize / 1000.0;
             expandingRate = Math.Exp(Math.Log(6.0) / (targetFrameRate * DissolveTime));
+            labelText.Add("Lebenon");
+            labelText.Add("China");
+            labelText.Add("Israel");
+            labelText.Add("Serbia");
+            labelText.Add("France");
+            labelText.Add("Germany");
+            labelText.Add("South Africa");
+            labelText.Add("Madagascar");
+            labelText.Add("Vietnam");
+            labelText.Add("Russia");
+            labelText.Add("Iraq");
+            labelText.Add("Brazil");
+            labelText.Add("Somalia");
+            labelText.Add("Saudi Arabia");
+            labelText.Add("Italy");
+            labelText.Add("USA");
+            labelText.Add("Egypt");
+            labelText.Add("Kenya");
+            labelText.Add("Uganda");
+            labelText.Add("Vatican");
+            labelText.Add("Mongolia");
+            labelText.Add("Philippines");
+            labelText.Add("South Korea");
+            labelText.Add("North Korea");
+            labelText.Add("Poland");
+            labelText.Add("Ukraine");
+            labelText.Add("Australia");
+            labelText.Add("New Zealand");
+            labelText.Add("Japan");
+            labelText.Add("Mexico");
+            labelText.Add("Iran");
+            labelText.Add("Spain");
+
         }
 
         public void SetFramerate(double actualFramerate)
@@ -547,7 +583,7 @@ namespace NetGame.Utils
             return allHits;
         }
 
-        private void DropNewThing(PolyType newShape, double newSize, Color newColor, UIElementCollection children)
+        private void DropNewThing(PolyType newShape, double newSize, Color newColor, UIElementCollection children /*, List<ShoopDoup.Models.DataObject> data*/)
         {
             // Only drop within the center "square" area 
             double fDropWidth = (sceneRect.Bottom - sceneRect.Top);
@@ -577,9 +613,26 @@ namespace NetGame.Utils
             };
             things.Add(newThing);
 
+            int randomLabel = rnd.Next(0, labelText.Count - 1);
+            String text = labelText[randomLabel];
+
+            while (usedLabels.Contains(text))
+            {
+                if(usedLabels.Count>labelText.Count-5){
+                    usedLabels.Clear();
+                }
+                randomLabel = rnd.Next(0, labelText.Count - 1);
+                text = labelText[randomLabel];
+            }
+
+            usedLabels.Add(text);
+
             Label label = new Label();
             TextBlock bubbleTextBlock = new TextBlock();
-            bubbleTextBlock.Text = "Apples!!!";
+            bubbleTextBlock.Text = text;
+            SolidColorBrush appleColor = new SolidColorBrush();
+            appleColor.Color = Color.FromArgb(255, 227, 50, 50);
+            bubbleTextBlock.Foreground=appleColor;
             Viewbox bubbleViewBox = new Viewbox();
             bubbleViewBox.Stretch = Stretch.Uniform;
             bubbleViewBox.Height = 80;
@@ -618,40 +671,6 @@ namespace NetGame.Utils
             apple.Height = 100;
             apples.Add(apple);
 
-            /*if (numSides <= 1)
-            {
-                var circle = new Ellipse();
-                circle.Width = size * 2;
-                circle.Height = size * 2;
-                circle.Stroke = brushStroke;
-                if (circle.Stroke != null)
-                    circle.Stroke.Opacity = opacity;
-                circle.StrokeThickness = strokeThickness * ((numSides == 1) ? 1 : 2);
-                circle.Fill = (numSides == 1) ? brush : null;
-                circle.SetValue(Canvas.LeftProperty, center.X - size);
-                circle.SetValue(Canvas.TopProperty, center.Y - size);
-                return circle;
-            }
-            else
-            {
-                var points = new PointCollection(numSides + 2);
-                double theta = spin;
-                for (int i = 0; i <= numSides + 1; ++i)
-                {
-                    points.Add(new Point(Math.Cos(theta) * size + center.X, Math.Sin(theta) * size + center.Y));
-                    theta = theta + 2.0 * Math.PI * skip / numSides;
-                }
-
-                var polyline = new Polyline();
-                polyline.Points = points;
-                polyline.Stroke = brushStroke;
-                if (polyline.Stroke != null)
-                    polyline.Stroke.Opacity = opacity;
-                polyline.Fill = brush;
-                polyline.FillRule = FillRule.Nonzero;
-                polyline.StrokeThickness = strokeThickness;
-                return polyline;
-            }*/
             return apple;
         }
 
@@ -675,7 +694,7 @@ namespace NetGame.Utils
             return label;
         }
 
-        public void AdvanceFrame(UIElementCollection children)
+        public void AdvanceFrame(UIElementCollection children/*, List<ShoopDoup.Models.DataObject> data*/)
         {
             // Move all things by one step, accounting for gravity
             for (int i = 0; i < things.Count; i++)
@@ -715,9 +734,6 @@ namespace NetGame.Utils
                 // Get rid of after dissolving.
                 if (thing.state == ThingState.Dissolving)
                 {
-                    thing.dissolve += 1 / (targetFrameRate * DissolveTime);
-                    thing.size *= expandingRate;
-                    if (thing.dissolve >= 1.0)
                         thing.state = ThingState.Remove;
                 }
                 things[i] = thing;
@@ -731,11 +747,13 @@ namespace NetGame.Utils
                 Thing thing = things[i];
                 Image apple = apples[i];
                 Label label = appleLabels[i];
+                //String text = labelText[i];
                 if (thing.state == ThingState.Remove)
                 {
                     things.Remove(thing);
                     apples.Remove(apple);
                     appleLabels.Remove(label);
+                    //labelText.Remove(text);
                     children.Remove(apple);
                     children.Remove(label);
                     i--;
@@ -769,7 +787,7 @@ namespace NetGame.Utils
                     tryType = alltypes[rnd.Next(alltypes.Length)];
                 } while ((polyTypes & tryType) == 0);
 
-                DropNewThing(tryType, shapeSize, Color.FromRgb(r, g, b),children);
+                DropNewThing(tryType, shapeSize, Color.FromRgb(r, g, b),children /*,data*/);
             }
         }
 
