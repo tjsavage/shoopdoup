@@ -172,6 +172,20 @@ namespace ShoopDoup.Properties {
             }
         }
         
+        internal static System.Drawing.Bitmap qr {
+            get {
+                object obj = ResourceManager.GetObject("qr", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap ThinkingUpgame {
+            get {
+                object obj = ResourceManager.GetObject("ThinkingUpgame", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         internal static System.Drawing.Bitmap TrafficLaneBackGround {
             get {
                 object obj = ResourceManager.GetObject("TrafficLaneBackGround", resourceCulture);

@@ -160,6 +160,12 @@
     <Resource Include="Assets\CarStopperTruck.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\ThinkingUpgame.png" />
+    <None Include="Resources\qr.png" />
+    <None Include="Resources\WelcomeFollowing.png" />
+    <None Include="Resources\WelcomeAttention.png" />
+    <None Include="Resources\WelcomeSleep.png" />
+    <None Include="Resources\WelcomeBored.png" />
     <None Include="Resources\BlueHandCursorX.png" />
     <None Include="Resources\BlueHandCursor.png" />
     <None Include="Resources\motorcycle.png" />

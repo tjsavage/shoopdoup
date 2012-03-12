@@ -19,7 +19,7 @@ namespace ShoopDoup.ViewControllers
 {
     class CarStopperController : SceneController
     {
-        private enum GAME_STATE {Intro, Instructions, Playing, Exit};
+        private enum GAME_STATE {Instructions, Playing, Exit};
 
         struct Car
         {
@@ -92,7 +92,7 @@ namespace ShoopDoup.ViewControllers
 
         public CarStopperController(Minigame game)
         {
-            state = GAME_STATE.Intro;
+            state = GAME_STATE.Instructions;
             minigame = game;
             introTitle = minigame.getTitle();
             introDescription = minigame.getDescription();
@@ -106,8 +106,8 @@ namespace ShoopDoup.ViewControllers
 
             setupLabels();
 
-            mainCanvas.Children.Add(introTitleLabel);
-            mainCanvas.Children.Add(introDescriptionLabel);
+            //mainCanvas.Children.Add(introTitleLabel);
+            //mainCanvas.Children.Add(introDescriptionLabel);
             mainCanvas.Children.Add(instructionLabel);
             mainCanvas.Children.Add(exitLabel);
             mainCanvas.Children.Add(scoreLabel);
@@ -116,7 +116,6 @@ namespace ShoopDoup.ViewControllers
             this.transitionTimer = new System.Windows.Threading.DispatcherTimer();
             this.transitionTimer.Tick += moveToNextState;
             this.transitionTimer.Interval = TimeSpan.FromMilliseconds(3000);
-            this.transitionTimer.Start();
 
             this.fadeTimer = new System.Windows.Threading.DispatcherTimer();
             this.fadeTimer.Tick += fadeToNextState;
@@ -157,7 +156,7 @@ namespace ShoopDoup.ViewControllers
             trafficBackgroundImage.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.TrafficLaneBackGround);
             trafficBackgroundImage.Width = 1280;
             trafficBackgroundImage.Height = 800;
-            trafficBackgroundImage.Opacity = 0;
+            trafficBackgroundImage.Opacity = .8;
 
             rightHandCursor.Opacity = 0;
             leftHandCursor.Opacity = 0;
@@ -178,6 +177,8 @@ namespace ShoopDoup.ViewControllers
             Canvas.SetLeft(trafficBackgroundImage, 0);
             Canvas.SetTop(trafficBackgroundImage, 0);
             Canvas.SetZIndex(trafficBackgroundImage, 0);
+
+            runIntro();
         }
 
         private void setupLabels()
@@ -246,7 +247,7 @@ namespace ShoopDoup.ViewControllers
             Canvas.SetLeft(baseLabel, 400);
             Canvas.SetTop(baseLabel, 0);
             Canvas.SetZIndex(baseLabel, 10);
-            ((TextBlock)baseLabel.Content).Opacity = 0;
+            ((TextBlock)baseLabel.Content).Opacity = 1;
 
             //runIntro();
         }

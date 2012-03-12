@@ -207,7 +207,7 @@ namespace ShoopDoup.ViewControllers
         
         public override void updateWithoutSkeleton()
         {
-            //ReturnToStandbyController();
+            ReturnToStandbyController();
         }
 
         private void UpdatePlayfieldSize()

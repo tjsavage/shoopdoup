@@ -29,33 +29,6 @@ namespace ShoopDoup.Models
             type = minigameType;
         }
 
-        public void start()
-        {
-            this.getController().start();
-        }
-
-        public SceneController getController()
-        {
-            if (this.controller == null)
-            {
-                switch (this.type)
-                {
-                    case MINIGAME_TYPE.Binary:
-                        this.controller = new NetGameController(null);
-                        break;
-                    default:
-                        this.controller = new NetGameController(null);
-                        break;
-                }
-            }
-            return this.controller;
-        }
-
-        public void setController(SceneController controller)
-        {
-            this.controller = controller;
-        }
-
         private void parseDataModel(JObject dataModel)
         {
             for (int i = 0; i < (((JArray)dataModel["response"]).Count); i++)

@@ -17,13 +17,14 @@ namespace ShoopDoup.ViewControllers
 {
     class StandbyController : SceneController
     {
-        private enum STANDBY_STATE { Sleep, Attention, FollowingLeft, FollowingRight, Bored };
+        private enum STANDBY_STATE { Sleep, Attention, FollowingLeft, FollowingRight, Bored, Thinking };
 
         private BitmapImage welcomeSleepBitmap;
         private BitmapImage welcomeAttentionBitmap;
         private BitmapImage welcomeFollowingRightBitmap;
         private BitmapImage welcomeFollowingLeftBitmap;
         private BitmapImage welcomeBoredBitmap;
+        private BitmapImage thinkingBitmap;
         private System.Windows.Controls.Image currentImage;
         private STANDBY_STATE state;
         private DateTime lastPlayerTime;
@@ -31,6 +32,10 @@ namespace ShoopDoup.ViewControllers
         private System.Windows.Controls.Image leftHandCursor;
         private System.Windows.Controls.Image rightHandCursor;
         private System.Windows.Threading.DispatcherTimer fadeTimer;
+
+        private Label genericIntroLabel;
+        private Label instructionIntroLabel;
+        private System.Windows.Threading.DispatcherTimer exitTimer;
 
         public StandbyController() : base()
         {
@@ -41,11 +46,12 @@ namespace ShoopDoup.ViewControllers
             followingBitmap.RotateFlip(RotateFlipType.RotateNoneFlipX);
             welcomeFollowingRightBitmap = this.toBitmapImage(followingBitmap);
             welcomeBoredBitmap = this.toBitmapImage(ShoopDoup.Properties.Resources.WelcomeBored);
+            thinkingBitmap = this.toBitmapImage(ShoopDoup.Properties.Resources.ThinkingUpgame);
 
             currentImage = new System.Windows.Controls.Image();
             state = STANDBY_STATE.Sleep;
             currentImage.Source = welcomeSleepBitmap;
-            currentImage.Width = 800;
+            currentImage.Width = 1280;
 
             rightHandCursor = new System.Windows.Controls.Image();
             rightHandCursor.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.HandCursor);
@@ -57,9 +63,50 @@ namespace ShoopDoup.ViewControllers
             leftHandCursor.Source = this.toBitmapImage(leftHandBitmap);
             leftHandCursor.Width = 100;
 
+            rightHandCursor.Opacity = 0;
+            leftHandCursor.Opacity = 0;
+
+            TextBlock genericTextBlock = new TextBlock();
+            Viewbox genericViewbox = new Viewbox();
+            genericIntroLabel = new Label();
+
+            genericTextBlock.Text = "Help researchers \nby providing your\nopinion through a game!";
+            genericTextBlock.Foreground = System.Windows.Media.Brushes.Navy;
+            genericViewbox.Height = 500;
+            genericViewbox.Width = 800;
+            genericViewbox.Child = genericTextBlock;
+            genericIntroLabel.Content = genericViewbox;
+            genericViewbox.Stretch = Stretch.Uniform;
+            genericIntroLabel.Opacity = 0;
+
+            TextBlock instructionTextBlock = new TextBlock();
+            Viewbox instructionViewbox = new Viewbox();
+            instructionIntroLabel = new Label();
+
+            instructionIntroLabel.Height = 500;
+            instructionIntroLabel.Width = 800;
+            instructionTextBlock.Foreground = System.Windows.Media.Brushes.Navy;
+            instructionViewbox.Height = 500;
+            instructionViewbox.Width = 800;
+            instructionTextBlock.FontSize = 50;
+            instructionViewbox.Child = instructionTextBlock;
+            instructionIntroLabel.Content = instructionViewbox;
+            instructionViewbox.Stretch = Stretch.Uniform;
+            instructionIntroLabel.Opacity = 0;
+
+            Canvas.SetLeft(genericIntroLabel, 400);
+            Canvas.SetTop(genericIntroLabel, 100);
+            Canvas.SetZIndex(genericIntroLabel, 2);
+
+            Canvas.SetLeft(instructionIntroLabel, 400);
+            Canvas.SetTop(instructionIntroLabel, 100);
+            Canvas.SetZIndex(instructionIntroLabel, 2);
+
             mainCanvas.Children.Add(currentImage);
             mainCanvas.Children.Add(rightHandCursor);
             mainCanvas.Children.Add(leftHandCursor);
+            mainCanvas.Children.Add(genericIntroLabel);
+            mainCanvas.Children.Add(instructionIntroLabel);
 
             //Canvas.SetTop(currentImage, 20);
             //Canvas.SetLeft(currentImage, this.WindowWidth / 2);
@@ -75,6 +122,13 @@ namespace ShoopDoup.ViewControllers
             this.fadeTimer.Tick += FadeOut;
             this.fadeTimer.Interval = TimeSpan.FromMilliseconds(40);
             this.fadeTimer.IsEnabled = false;
+
+            this.exitTimer = new System.Windows.Threading.DispatcherTimer();
+            this.exitTimer.Tick += prepareToExit;
+            this.exitTimer.Interval = TimeSpan.FromMilliseconds(3000);
+            this.exitTimer.IsEnabled = false;
+
+            state = STANDBY_STATE.Thinking;
         }
 
         public override void updateSkeleton(SkeletonData skeleton)
@@ -85,38 +139,49 @@ namespace ShoopDoup.ViewControllers
                 rightHandCursor.Visibility = System.Windows.Visibility.Visible;
                 leftHandCursor.Visibility = System.Windows.Visibility.Visible;
             }
-            Canvas.SetTop(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.Y);
-            Canvas.SetLeft(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.X);
-            Canvas.SetTop(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.Y);
-            Canvas.SetLeft(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.X);
+            Canvas.SetTop(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(1280, 800, .5f, .5f).Position.Y);
+            Canvas.SetLeft(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(1280, 800, .5f, .5f).Position.X);
+            Canvas.SetTop(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(1280, 800, .5f, .5f).Position.Y);
+            Canvas.SetLeft(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(1280, 800, .5f, .5f).Position.X);
 
-
-            if (skeleton.Joints[JointID.Spine].ScaleTo(640, 480, .5f, .5f).Position.X < this.WindowWidth / 3)
+            if (state == STANDBY_STATE.Thinking)
             {
-                if (state != STANDBY_STATE.FollowingLeft)
+                genericIntroLabel.Opacity = 1;
+                currentImage.Source = thinkingBitmap;
+                exitTimer.Start();
+            }
+            else
+            {
+                exitTimer.Stop();
+
+                if (skeleton.Joints[JointID.Spine].ScaleTo(1280, 800, .5f, .5f).Position.X < this.WindowWidth / 3)
                 {
-                    state = STANDBY_STATE.FollowingLeft;
-                    currentImage.Source = welcomeFollowingLeftBitmap;
+                    if (state != STANDBY_STATE.FollowingLeft)
+                    {
+                        state = STANDBY_STATE.FollowingLeft;
+                        currentImage.Source = welcomeFollowingLeftBitmap;
+                    }
                 }
-            }
-            else if (skeleton.Joints[JointID.Spine].ScaleTo(640, 480, .5f, .5f).Position.X > this.WindowWidth * 2 / 3)
-            {
-                if (state != STANDBY_STATE.FollowingRight)
+                else if (skeleton.Joints[JointID.Spine].ScaleTo(1280, 800, .5f, .5f).Position.X > this.WindowWidth * 2 / 3)
                 {
-                    state = STANDBY_STATE.FollowingRight;
-                    currentImage.Source = welcomeFollowingRightBitmap;
+                    if (state != STANDBY_STATE.FollowingRight)
+                    {
+                        state = STANDBY_STATE.FollowingRight;
+                        currentImage.Source = welcomeFollowingRightBitmap;
+                    }
                 }
-            }
-            else if (state != STANDBY_STATE.Attention)
-            {
-                state = STANDBY_STATE.Attention;
-                currentImage.Source = welcomeAttentionBitmap;
-                playerActiveTime = DateTime.UtcNow;
-            }
+                else if (state != STANDBY_STATE.Attention)
+                {
+                    state = STANDBY_STATE.Attention;
+                    currentImage.Source = welcomeAttentionBitmap;
+                    playerActiveTime = DateTime.UtcNow;
+                }
 
-            if (state == STANDBY_STATE.Attention && (DateTime.UtcNow - playerActiveTime).Seconds > 3)
-            {
-                fadeTimer.IsEnabled = true;
+                if (state == STANDBY_STATE.Attention && (DateTime.UtcNow - playerActiveTime).Seconds > 3)
+                {
+                    state = STANDBY_STATE.Thinking;
+                    //fadeTimer.IsEnabled = true;
+                }
             }
         }
 
@@ -125,7 +190,7 @@ namespace ShoopDoup.ViewControllers
             currentImage.Opacity -= .03;
             leftHandCursor.Opacity -= .03;
             rightHandCursor.Opacity -= .03;
-            fadeTimer.IsEnabled = true;
+            //fadeTimer.IsEnabled = true;
         
             if (currentImage.Opacity < .04)
             {
@@ -135,8 +200,23 @@ namespace ShoopDoup.ViewControllers
             }
         }
 
+        private void prepareToExit(object sender, EventArgs e)
+        {
+            genericIntroLabel.Opacity = 0;
+            instructionIntroLabel.Opacity = 1;
+            exitTimer.Stop();
+            ReturnToStandbyController();
+        }
+
+        public void setInstructionText(String instructions)
+        {
+            instructionIntroLabel.Content = instructions;
+        }
+
         public override void updateWithoutSkeleton()
         {
+            exitTimer.Stop();
+
             if (rightHandCursor.Visibility == System.Windows.Visibility.Visible)
             {
                 rightHandCursor.Visibility = System.Windows.Visibility.Hidden;

@@ -51,7 +51,7 @@ namespace ShoopDoup
         private void addNewMinigame(JObject projectIdResult, MINIGAME_TYPE type, String title, String description)
         {
             Minigame mg = new Minigame(projectIdResult, type, title, description);
-            mg.getController().parentController = mainController;
+            //mg.getController().parentController = mainController;
             minigames.Add(mg);
         }
 
