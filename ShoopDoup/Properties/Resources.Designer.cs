@@ -59,16 +59,7 @@ namespace ShoopDoup.Properties {
                 resourceCulture = value;
             }
         }
-
-        internal static System.Drawing.Bitmap BlueHandCursor
-        {
-            get
-            {
-                object obj = ResourceManager.GetObject("BlueHandCursor", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-
+        
         internal static System.Drawing.Bitmap apple {
             get {
                 object obj = ResourceManager.GetObject("apple", resourceCulture);
@@ -76,16 +67,23 @@ namespace ShoopDoup.Properties {
             }
         }
         
-        internal static System.Drawing.Bitmap BlueHandCursorX {
-            get {
-                object obj = ResourceManager.GetObject("BlueHandCursorX", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-
         internal static System.Drawing.Bitmap backgroundTree {
             get {
                 object obj = ResourceManager.GetObject("backgroundTree", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap BlueHandCursor {
+            get {
+                object obj = ResourceManager.GetObject("BlueHandCursor", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap BlueHandCursorX {
+            get {
+                object obj = ResourceManager.GetObject("BlueHandCursorX", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -170,6 +168,20 @@ namespace ShoopDoup.Properties {
         internal static System.Drawing.Bitmap OceanBackground {
             get {
                 object obj = ResourceManager.GetObject("OceanBackground", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap qr {
+            get {
+                object obj = ResourceManager.GetObject("qr", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap ThinkingUpgame {
+            get {
+                object obj = ResourceManager.GetObject("ThinkingUpgame", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
