@@ -48,7 +48,7 @@ namespace ShoopDoup.ViewControllers
         private System.Windows.Controls.Image leftHandCursor;
         private System.Windows.Controls.Image rightHandCursor;
         private List<Bubble> bubbles;
-        private Bubble instructionBubble;
+        private List<Bubble> instructionBubbles;
         private int MAX_BUBBLES = 10;
         private Random randomGen = new Random();
         private System.Windows.Threading.DispatcherTimer bubbleTimer;
@@ -69,6 +69,7 @@ namespace ShoopDoup.ViewControllers
         public PopTheBubblesController(Minigame game)
         {
             this.minigame = game;
+            this.instructionBubbles = new List<Bubble>();
             state = GAME_STATE.Instruction;
             StartInstructionTimer();
             bubbles = new List<Bubble>();
@@ -77,14 +78,11 @@ namespace ShoopDoup.ViewControllers
             LoadCursors();
             SetAssociateLabel();
             SetTimerLabel();
-            //StartGameTimer();
-            //StartBubbleTimer();
-            //StartRemoveTimer();
         }
 
         private void StartInstructionTimer()
         {
-            secondsLeft = 1;
+            secondsLeft = 11;
             this.instructionTimer = new System.Windows.Threading.DispatcherTimer();
             this.instructionTimer.Tick += instructUser;
             this.instructionTimer.Interval = TimeSpan.FromMilliseconds(1000);
@@ -116,28 +114,31 @@ namespace ShoopDoup.ViewControllers
             Canvas.SetTop(label, y + 5);
             Canvas.SetLeft(label, x + 5);
             Canvas.SetZIndex(label, 3);
-            instructionBubble = new Bubble(x, y, bubble, label);
+            instructionBubbles.Add(new Bubble(x, y, bubble, label));
+        }
+
+        private void removeBubble(int i)
+        {
+            mainCanvas.Children.Remove(instructionBubbles[i].bubble);
+            mainCanvas.Children.Remove(instructionBubbles[i].bubbleLabel);
+            //instructionBubbles.RemoveAt(i);
         }
 
         private void instructUser(Object sender, EventArgs e)
         {
-            mainCanvas.Children.Remove(instructionBubble.bubble);
-            mainCanvas.Children.Remove(instructionBubble.bubbleLabel);
+            //mainCanvas.Children.Remove(instructionBubble.bubble);
+            //mainCanvas.Children.Remove(instructionBubble.bubbleLabel);
             switch (secondsLeft)
             {
-                case 15: createInstructionBubble("Pop", 50, 150); break;
-                case 14: createInstructionBubble("The", 415, 200); break;
-                case 13: createInstructionBubble("Bubbles", 600, 250); break;
-                case 12: createInstructionBubble("That", 500, 100); break;
-                case 11: createInstructionBubble("Relate", 300, 300); break;
-                case 10: createInstructionBubble("To", 50, 250); break;
-                case 9: createInstructionBubble("The", 650, 100); break;
-                case 8: createInstructionBubble("Word", 300, 300); break;
-                case 7: createInstructionBubble("At", 150, 150); break;
-                case 6: createInstructionBubble("The", 100, 275); break;
-                case 5: createInstructionBubble("Top", 300, 250); break;
-                case 4: createInstructionBubble("Ready", 50, 175); break;
-                case 3: createInstructionBubble("GO!!", 350, 250); break;
+                case 11: createInstructionBubble("Pop The", 500, 150); break;
+                case 10: createInstructionBubble("Bubbles", 600, 200); break;
+                case 9: createInstructionBubble("That", 700, 150); break;
+                case 8: createInstructionBubble("Relate", 800, 200); break;
+                case 7: createInstructionBubble("To The", 700, 270); break;
+                case 6: createInstructionBubble("Word", 800, 320); break;
+                case 5: createInstructionBubble("At The Top!", 900, 270); break;
+                case 4: createInstructionBubble("Ready...", 1050, 400); break;
+                case 2: for (int i = 0; i < instructionBubbles.Count; i++) removeBubble(i); break;
             }
             secondsLeft--;
             if (secondsLeft == 0)
@@ -166,8 +167,8 @@ namespace ShoopDoup.ViewControllers
             bubbleViewBox.Child = bubbleTextBlock;
             this.associateWithLabel.Content = bubbleViewBox;
             mainCanvas.Children.Add(associateWithLabel);
-            Canvas.SetTop(associateWithLabel, 40);
-            Canvas.SetLeft(associateWithLabel, 520);
+            Canvas.SetTop(associateWithLabel, 30);
+            Canvas.SetLeft(associateWithLabel, 450);
             Canvas.SetZIndex(associateWithLabel, 4);
         }
 
@@ -337,21 +338,21 @@ namespace ShoopDoup.ViewControllers
 
                 System.Windows.Controls.Image bubble = new System.Windows.Controls.Image();
                 bubble.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.bubble);
-                bubble.Width = randomGen.Next(70,140);
+                bubble.Width = randomGen.Next(60,140);
                 mainCanvas.Children.Add(bubble);
                 int x = randomGen.Next(60, 1050);
                 int y = randomGen.Next(115, 560);
 
-
-                while (hitBubble(x, y) != (-1) || ((y > 450) && (x > 900) && (x < 1200)))
-               {
+                while (hitBubble(x, y) != (-1) || ((y > 160) && (y < 450) && (x > 160) && (x < 450)) || ((y > 350) && (x > 725) && (x < 1200)))
+                {
                     x = randomGen.Next(60, 1050);
                     y = randomGen.Next(115, 560);
-               }
+                }
 
                 Label label = new Label();
                 TextBlock bubbleTextBlock = new TextBlock();
                 bubbleTextBlock.Text = text;
+                bubbleTextBlock.Foreground = System.Windows.Media.Brushes.DarkGreen;
                 Viewbox bubbleViewBox = new Viewbox();
                 bubbleViewBox.Stretch = Stretch.Uniform;
                 bubbleViewBox.Height = 100;
@@ -377,15 +378,15 @@ namespace ShoopDoup.ViewControllers
         {
             if (state == GAME_STATE.GamePlay)
             {
-                highlightedHandBaseDepth = skeleton.Joints[JointID.Spine].ScaleTo(640, 480, .5f, .5f).Position.Z;
+                highlightedHandBaseDepth = skeleton.Joints[JointID.Spine].ScaleTo(1280, 800, .5f, .5f).Position.Z;
 
                 Joint rightHand = skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f);
                 Joint leftHand = skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f);
 
-                Canvas.SetTop(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.Y);
-                Canvas.SetLeft(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.X);
-                Canvas.SetTop(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.Y);
-                Canvas.SetLeft(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.X);
+                Canvas.SetTop(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(1280, 800, .5f, .5f).Position.Y);
+                Canvas.SetLeft(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(1280, 800, .5f, .5f).Position.X);
+                Canvas.SetTop(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(1280, 800, .5f, .5f).Position.Y);
+                Canvas.SetLeft(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(1280, 800, .5f, .5f).Position.X);
 
                 int x1 = Convert.ToInt32(Canvas.GetLeft(rightHandCursor));
                 int y1 = Convert.ToInt32(Canvas.GetTop(rightHandCursor));
@@ -439,7 +440,7 @@ namespace ShoopDoup.ViewControllers
                     else
                     {
                         textBlock.Foreground = System.Windows.Media.Brushes.Yellow;
-                        bubbles[hit1].setSelected(true);
+                        bubbles[hit2].setSelected(true);
                     }
                 }
                 for (int i = 0; i < bubbles.Count; i++)
@@ -448,7 +449,7 @@ namespace ShoopDoup.ViewControllers
                     {
                         TextBlock tb = ((TextBlock)((Viewbox)bubbles[i].bubbleLabel.Content).Child);
                         tb.Foreground = System.Windows.Media.Brushes.Black;
-                        bubbles[hit1].setSelected(false);
+                        bubbles[i].setSelected(false);
                     }
                 }
             }

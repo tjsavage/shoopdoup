@@ -59,16 +59,7 @@ namespace ShoopDoup.Properties {
                 resourceCulture = value;
             }
         }
-
-        internal static System.Drawing.Bitmap BlueHandCursor
-        {
-            get
-            {
-                object obj = ResourceManager.GetObject("BlueHandCursor", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-
+        
         internal static System.Drawing.Bitmap apple {
             get {
                 object obj = ResourceManager.GetObject("apple", resourceCulture);
@@ -76,16 +67,23 @@ namespace ShoopDoup.Properties {
             }
         }
         
-        internal static System.Drawing.Bitmap BlueHandCursorX {
-            get {
-                object obj = ResourceManager.GetObject("BlueHandCursorX", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-
         internal static System.Drawing.Bitmap backgroundTree {
             get {
                 object obj = ResourceManager.GetObject("backgroundTree", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap BlueHandCursor {
+            get {
+                object obj = ResourceManager.GetObject("BlueHandCursor", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap BlueHandCursorX {
+            get {
+                object obj = ResourceManager.GetObject("BlueHandCursorX", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -205,6 +203,13 @@ namespace ShoopDoup.Properties {
         internal static System.Drawing.Bitmap WelcomeSleep {
             get {
                 object obj = ResourceManager.GetObject("WelcomeSleep", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap whitesquare {
+            get {
+                object obj = ResourceManager.GetObject("whitesquare", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
