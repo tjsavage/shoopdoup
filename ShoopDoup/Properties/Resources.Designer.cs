@@ -63,6 +63,9 @@ namespace ShoopDoup.Properties {
         internal static System.Drawing.Bitmap BlueHandCursor {
             get {
                 object obj = ResourceManager.GetObject("BlueHandCursor", resourceCulture);
+        internal static System.Drawing.Bitmap apple {
+            get {
+                object obj = ResourceManager.GetObject("apple", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -70,6 +73,9 @@ namespace ShoopDoup.Properties {
         internal static System.Drawing.Bitmap BlueHandCursorX {
             get {
                 object obj = ResourceManager.GetObject("BlueHandCursorX", resourceCulture);
+        internal static System.Drawing.Bitmap backgroundTree {
+            get {
+                object obj = ResourceManager.GetObject("backgroundTree", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

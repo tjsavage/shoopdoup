@@ -27,14 +27,17 @@ namespace ShoopDoup.ViewControllers
         #region Private State
         const int TimerResolution = 2;  // ms
         const int NumIntraFrames = 3;
-        const int MaxShapes = 80;
+        const int MaxShapes = 10;
         const double MaxFramerate = 70;
         const double MinFramerate = 15;
         const double MinShapeSize = 12;
         const double MaxShapeSize = 90;
-        const double DefaultDropRate = 2.5;
+        const double DefaultDropRate = 1;
         const double DefaultDropSize = 32.0;
         const double DefaultDropGravity = 1.0;
+
+        int displayWidth = 1180;
+        int displayHeight=700;
 
         double dropRate = DefaultDropRate;
         double dropSize = DefaultDropSize;
@@ -60,6 +63,7 @@ namespace ShoopDoup.ViewControllers
         private System.Windows.Controls.Image currentImage;
         private System.Windows.Controls.Image leftHandCursor;
         private System.Windows.Controls.Image rightHandCursor;
+        private System.Windows.Controls.Image background;
         private System.Windows.Shapes.Line myNet;
         private System.Windows.Shapes.Rectangle startGameRect;
         private System.Windows.Controls.Canvas playfield;
@@ -67,11 +71,19 @@ namespace ShoopDoup.ViewControllers
         private enum STANDBY_STATE { Instructions, Playing, Exiting };
         private BitmapImage instructionsBitmap;
 
+        private Minigame minigame;
+        private int timeLeft;
+        private Label timerLabel;
+        private int score;
+        private Label scoreLabel;
+        private System.Windows.Threading.DispatcherTimer gameTimer;
+
         #endregion Private State
 
 
-        public NetGameController(List<ShoopDoup.Models.DataObject> objects, String title, String description) : base()
+        public NetGameController(Minigame game) : base()
         {
+            this.minigame = game;
             start();
         }
             
@@ -92,9 +104,9 @@ namespace ShoopDoup.ViewControllers
             leftHandCursor.Width = 100;
 
             playfield = new System.Windows.Controls.Canvas();
-            playfield.Background = Brushes.CadetBlue;
-            playfield.Width = 1000;
-            playfield.Height =600;
+            //playfield.Background = Brushes.CadetBlue;
+            playfield.Width = 1440;
+            playfield.Height =900;
             UpdatePlayfieldSize();
 
             startGameRect = new System.Windows.Shapes.Rectangle();
@@ -132,6 +144,8 @@ namespace ShoopDoup.ViewControllers
             myNet.Visibility = System.Windows.Visibility.Hidden;
             playfield.Visibility = System.Windows.Visibility.Hidden;
 
+            initNetGame();
+
             /*speechRecognizer = SpeechRecognizer.Create();         //returns null if problem with speech prereqs or instantiation.
             if (speechRecognizer != null)
             {
@@ -148,7 +162,7 @@ namespace ShoopDoup.ViewControllers
             playfield.Visibility = System.Windows.Visibility.Visible;
             startGameRect.Visibility = System.Windows.Visibility.Hidden;
 
-            fallingThings = new FallingThings(MaxShapes, targetFramerate, NumIntraFrames, 700, 500);
+            fallingThings = new FallingThings(MaxShapes, targetFramerate, NumIntraFrames, 1440, 900);
 
             fallingThings.SetGravity(dropGravity);
             fallingThings.SetDropRate(dropRate);
@@ -160,8 +174,10 @@ namespace ShoopDoup.ViewControllers
             var gameThread = new Thread(GameThread);
             gameThread.SetApartmentState(ApartmentState.STA);
             gameThread.Start();
-
-            FlyingText.NewFlyingText(screenRect.Width / 30, new Point(screenRect.Width / 2, screenRect.Height / 2), "Shapes!");
+            LoadBackground();
+            SetTimerLabel();
+            StartGameTimer();
+            LoadScore();
         }
 
         public override void updateSkeleton(SkeletonData skeleton)
@@ -173,29 +189,25 @@ namespace ShoopDoup.ViewControllers
                 leftHandCursor.Visibility = System.Windows.Visibility.Visible;
             }
 
-            Canvas.SetTop(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.Y);
-            Canvas.SetLeft(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.X);
-            Canvas.SetTop(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.Y);
-            Canvas.SetLeft(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.X);
+            Canvas.SetTop(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(displayWidth, displayHeight, .5f, .5f).Position.Y);
+            Canvas.SetLeft(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(displayWidth, displayHeight, .5f, .5f).Position.X);
+            Canvas.SetTop(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(displayWidth, displayHeight, .5f, .5f).Position.Y);
+            Canvas.SetLeft(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(displayWidth, displayHeight, .5f, .5f).Position.X);
 
-            if (skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.X < 400 && skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.Y < 300)
+            if (startGameRect.Visibility==System.Windows.Visibility.Visible && skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.X < 400 && skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.Y < 300)
             {
                 initNetGame();
             }
 
-            myNet.X1 = skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.X+50;
-            myNet.X2 = skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.X+50;
-            myNet.Y1 = skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.Y+50;
-            myNet.Y2 = skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.Y+50;
+            myNet.X1 = skeleton.Joints[JointID.HandRight].ScaleTo(displayWidth, displayHeight, .5f, .5f).Position.X+50;
+            myNet.X2 = skeleton.Joints[JointID.HandLeft].ScaleTo(displayWidth, displayHeight, .5f, .5f).Position.X+50;
+            myNet.Y1 = skeleton.Joints[JointID.HandRight].ScaleTo(displayWidth, displayHeight, .5f, .5f).Position.Y+50;
+            myNet.Y2 = skeleton.Joints[JointID.HandLeft].ScaleTo(displayWidth, displayHeight, .5f, .5f).Position.Y+50;
         }
         
         public override void updateWithoutSkeleton()
         {
-            if (rightHandCursor.Visibility == System.Windows.Visibility.Visible)
-            {
-                rightHandCursor.Visibility = System.Windows.Visibility.Hidden;
-                leftHandCursor.Visibility = System.Windows.Visibility.Hidden;
-            }
+            //ReturnToStandbyController();
         }
 
         private void UpdatePlayfieldSize()
@@ -209,7 +221,7 @@ namespace ShoopDoup.ViewControllers
             BannerText.UpdateBounds(screenRect);
 
             playerBounds.X = 0;
-            playerBounds.Width = playfield.ActualWidth;
+            playerBounds.Width = 1265;
             playerBounds.Y = playfield.ActualHeight;
             playerBounds.Height = playfield.ActualHeight ;
 
@@ -218,8 +230,65 @@ namespace ShoopDoup.ViewControllers
             rFallingBounds.Height = playfield.ActualHeight;
             if (fallingThings != null)
             {
-                fallingThings.SetBoundaries(rFallingBounds);
+                //fallingThings.SetBoundaries(rFallingBounds);
             }
+        }
+
+        private void SetTimerLabel()
+        {
+            timeLeft = 60;
+            this.timerLabel = new Label();
+            timerLabel.FontSize = 40;
+            timerLabel.Foreground = System.Windows.Media.Brushes.Red;
+            timerLabel.Content = "TIME: " + timeLeft;
+            mainCanvas.Children.Add(timerLabel);
+            Canvas.SetTop(timerLabel, 700);
+            Canvas.SetLeft(timerLabel, 20);
+            Canvas.SetZIndex(timerLabel, 4);
+        }
+
+        private void StartGameTimer()
+        {
+            this.gameTimer = new System.Windows.Threading.DispatcherTimer();
+            this.gameTimer.Tick += countdown;
+            this.gameTimer.Interval = TimeSpan.FromMilliseconds(1000);
+            this.gameTimer.Start();
+        }
+
+        private void countdown(object sender, EventArgs e)
+        {
+            timeLeft--;
+            timerLabel.Content = "TIME: " + timeLeft;
+            if (timeLeft == 0)
+            {
+                gameTimer.Stop();
+                ReturnToStandbyController();
+            }
+        }
+
+        private void LoadScore()
+        {
+            score = 0;
+            scoreLabel = new Label();
+            scoreLabel.Content = "SCORE: " + score;
+            scoreLabel.FontSize = 40;
+            scoreLabel.Foreground = System.Windows.Media.Brushes.Red;
+            mainCanvas.Children.Add(scoreLabel);
+            Canvas.SetTop(scoreLabel, 700);
+            Canvas.SetLeft(scoreLabel, 1000);
+            Canvas.SetZIndex(scoreLabel, 4);
+        }
+
+        private void LoadBackground()
+        {
+            background = new System.Windows.Controls.Image();
+            background.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.backgroundTree);
+            background.Width = 1280;
+            background.Height = 800;
+            mainCanvas.Children.Add(background);
+            Canvas.SetTop(background, -2);
+            Canvas.SetLeft(background, 0);
+            Canvas.SetZIndex(background, -20);
         }
 
         void CheckPlayers()
@@ -240,7 +309,7 @@ namespace ShoopDoup.ViewControllers
             }*/
         }
 
-        #region GameTimer/Thread
+        #region Gamer/Thread
         private void GameThread()
         {
             runningGameThread = true;
@@ -289,14 +358,18 @@ namespace ShoopDoup.ViewControllers
             for (int i = 0; i < NumIntraFrames; ++i)
             {
                 HitType hit = fallingThings.LookForHits(myNet,1);
-                fallingThings.AdvanceFrame();
+                if (hit != null)
+                {
+
+                }
+                fallingThings.AdvanceFrame(playfield.Children);
             }
 
             // Draw new Wpf scene by adding all objects to canvas
-            playfield.Children.Clear();
-            fallingThings.DrawFrame(playfield.Children);
-            BannerText.Draw(playfield.Children);
-            FlyingText.Draw(playfield.Children);
+            //playfield.Children.Clear();
+            //fallingThings.DrawFrame(playfield.Children);
+            //BannerText.Draw(playfield.Children);
+            //FlyingText.Draw(playfield.Children);
 
             CheckPlayers();
         }

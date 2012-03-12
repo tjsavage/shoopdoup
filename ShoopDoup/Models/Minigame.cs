@@ -41,10 +41,10 @@ namespace ShoopDoup.Models
                 switch (this.type)
                 {
                     case MINIGAME_TYPE.Binary:
-                        this.controller = new NetGameController(list, title, description);
+                        this.controller = new NetGameController(null);
                         break;
                     default:
-                        this.controller = new NetGameController(list, title, description);
+                        this.controller = new NetGameController(null);
                         break;
                 }
             }

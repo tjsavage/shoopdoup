@@ -56,7 +56,7 @@ namespace ShoopDoup
             minigameFactory = new MinigameFactory();
             minigameFactory.mainController = this;
 
-            currentController = new PopTheBubblesController(minigameFactory.getMinigameOfType(MINIGAME_TYPE.Association));//new StandbyController(); // new WhackAMoleController(minigameFactory.getMinigameOfType(Models.MINIGAME_TYPE.Association)); 
+            currentController = new NetGameController(null);// new CarStopperController(minigameFactory.getMinigameOfType(MINIGAME_TYPE.Association));//new StandbyController(); // new WhackAMoleController(minigameFactory.getMinigameOfType(Models.MINIGAME_TYPE.Association)); 
             currentController.ControllerFinished += switchMinigame;
             currentController.parentController = this;
             this.Content = currentController;
@@ -64,6 +64,7 @@ namespace ShoopDoup
             minigameControllers = new List<Type>();
             minigameControllers.Add(typeof(CarStopperController));
             minigameControllers.Add(typeof(PopTheBubblesController));
+            minigameControllers.Add(typeof(NetGameController));
 
 
         }
@@ -93,6 +94,9 @@ namespace ShoopDoup
                         break;
                     case 1:
                         currentController = new PopTheBubblesController(minigameFactory.getMinigameOfType(MINIGAME_TYPE.Association));
+                        break;
+                    case 2:
+                        currentController = new NetGameController(minigameFactory.getMinigameOfType(MINIGAME_TYPE.Association));
                         break;
                 }
                 //currentController = //new CarStopperController(minigameFactory.getMinigameOfType(MINIGAME_TYPE.Association));

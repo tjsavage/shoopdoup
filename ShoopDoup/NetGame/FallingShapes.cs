@@ -16,6 +16,7 @@ using System.Media;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using Microsoft.Research.Kinect.Nui;
 
@@ -332,6 +333,8 @@ namespace NetGame.Utils
         }
 
         private List<Thing> things = new List<Thing>();
+        private List<Image> apples = new List<Image>();
+        private List<Label> appleLabels = new List<Label>();
         private const double DissolveTime = 0.4;
         private int maxThings = 0;
         private Rect sceneRect;
@@ -544,7 +547,7 @@ namespace NetGame.Utils
             return allHits;
         }
 
-        private void DropNewThing(PolyType newShape, double newSize, Color newColor)
+        private void DropNewThing(PolyType newShape, double newSize, Color newColor, UIElementCollection children)
         {
             // Only drop within the center "square" area 
             double fDropWidth = (sceneRect.Bottom - sceneRect.Top);
@@ -570,16 +573,52 @@ namespace NetGame.Utils
                 state = ThingState.Falling,
                 touchedBy = 0,
                 hotness = 0,
-                flashCount = 0
+                flashCount = 0,
             };
-
             things.Add(newThing);
+
+            Label label = new Label();
+            TextBlock bubbleTextBlock = new TextBlock();
+            bubbleTextBlock.Text = "Apples!!!";
+            Viewbox bubbleViewBox = new Viewbox();
+            bubbleViewBox.Stretch = Stretch.Uniform;
+            bubbleViewBox.Height = 80;
+            bubbleViewBox.Width = 80;
+            bubbleViewBox.Child = bubbleTextBlock;
+            label.Content = bubbleViewBox;
+            appleLabels.Add(label);
+
+            children.Add(label);
+
+            children.Add(makeApple(PolyDefs[newThing.shape].numSides, PolyDefs[newThing.shape].skip,
+        newThing.size, newThing.theta, newThing.center, newThing.brush,
+        newThing.brushPulse, newThing.size * 0.1, 0));
         }
 
-        private Shape makeSimpleShape(int numSides, int skip, double size, double spin, Point center, Brush brush,
+        public BitmapImage toBitmapImage(System.Drawing.Bitmap bitmap)
+        {
+            System.IO.MemoryStream ms = new System.IO.MemoryStream();
+            bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+            ms.Position = 0;
+            BitmapImage bi = new BitmapImage();
+            bi.BeginInit();
+            bi.StreamSource = ms;
+            bi.EndInit();
+            return bi;
+        }
+
+        private Image makeApple(int numSides, int skip, double size, double spin, Point center, Brush brush,
             Brush brushStroke, double strokeThickness, double opacity)
         {
-            if (numSides <= 1)
+
+            System.Windows.Controls.Image apple = new System.Windows.Controls.Image();
+            apple.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.apple);
+            apple.SetValue(Canvas.LeftProperty, center.X - size);
+            apple.SetValue(Canvas.TopProperty, center.Y - size);
+            apple.Height = 100;
+            apples.Add(apple);
+
+            /*if (numSides <= 1)
             {
                 var circle = new Ellipse();
                 circle.Width = size * 2;
@@ -612,7 +651,8 @@ namespace NetGame.Utils
                 polyline.FillRule = FillRule.Nonzero;
                 polyline.StrokeThickness = strokeThickness;
                 return polyline;
-            }
+            }*/
+            return apple;
         }
 
         public static Label MakeSimpleLabel(string text, Rect bounds, Brush brush)
@@ -635,17 +675,29 @@ namespace NetGame.Utils
             return label;
         }
 
-        public void AdvanceFrame()
+        public void AdvanceFrame(UIElementCollection children)
         {
             // Move all things by one step, accounting for gravity
             for (int i = 0; i < things.Count; i++)
             {
                 Thing thing = things[i];
+                Image apple = apples[i];
+                Label label = appleLabels[i];
+
                 thing.center.Offset(thing.xVelocity, thing.yVelocity);
                 thing.yVelocity += gravity * sceneRect.Height;
                 thing.yVelocity *= airFriction;
                 thing.xVelocity *= airFriction;
                 thing.theta += thing.spinRate;
+
+                if (thing.state != ThingState.Dissolving)
+                {
+                    apple.SetValue(Canvas.LeftProperty, thing.center.X - thing.size);
+                    apple.SetValue(Canvas.TopProperty, thing.center.Y - thing.size);
+                    label.SetValue(Canvas.LeftProperty, thing.center.X - thing.size);
+                    label.SetValue(Canvas.TopProperty, thing.center.Y - thing.size);
+                    label.SetValue(Canvas.ZIndexProperty, 100);
+                }
 
                 // bounce off walls
                 if ((thing.center.X - thing.size < 0) || (thing.center.X + thing.size > sceneRect.Width))
@@ -656,7 +708,9 @@ namespace NetGame.Utils
 
                 // Then get rid of one if any that fall off the bottom
                 if (thing.center.Y - thing.size > sceneRect.Bottom)
+                {
                     thing.state = ThingState.Remove;
+                }
 
                 // Get rid of after dissolving.
                 if (thing.state == ThingState.Dissolving)
@@ -667,15 +721,23 @@ namespace NetGame.Utils
                         thing.state = ThingState.Remove;
                 }
                 things[i] = thing;
+                apples[i] = apple;
+                appleLabels[i] = label;
             }
 
             // Then remove any that should go away now
             for (int i = 0; i < things.Count; i++)
             {
                 Thing thing = things[i];
+                Image apple = apples[i];
+                Label label = appleLabels[i];
                 if (thing.state == ThingState.Remove)
                 {
                     things.Remove(thing);
+                    apples.Remove(apple);
+                    appleLabels.Remove(label);
+                    children.Remove(apple);
+                    children.Remove(label);
                     i--;
                 }
             }
@@ -683,9 +745,7 @@ namespace NetGame.Utils
             // Create any new things to drop based on dropRate
             if ((things.Count < maxThings) && (rnd.NextDouble() < dropRate / targetFrameRate) && (polyTypes != PolyType.None))
             {
-                PolyType[] alltypes = { PolyType.Triangle, PolyType.Square, PolyType.Star, 
-                                        PolyType.Pentagon, PolyType.Hex, PolyType.Star7,
-                                        PolyType.Circle, PolyType.Bubble};
+                PolyType[] alltypes = {PolyType.Square};
                 byte r = baseColor.R;
                 byte g = baseColor.G;
                 byte b = baseColor.B;
@@ -702,14 +762,14 @@ namespace NetGame.Utils
                     g = (byte)(Math.Min(255.0, (double)baseColor.G * (0.7 + rnd.NextDouble() * 0.7)));
                     b = (byte)(Math.Min(255.0, (double)baseColor.B * (0.7 + rnd.NextDouble() * 0.7)));
                 }
-
+                
                 PolyType tryType = PolyType.None;
                 do
                 {
                     tryType = alltypes[rnd.Next(alltypes.Length)];
                 } while ((polyTypes & tryType) == 0);
 
-                DropNewThing(tryType, shapeSize, Color.FromRgb(r, g, b));
+                DropNewThing(tryType, shapeSize, Color.FromRgb(r, g, b),children);
             }
         }
 
@@ -735,7 +795,7 @@ namespace NetGame.Utils
                 {
                     double alpha = (Math.Cos(0.15 * (thing.flashCount++) * thing.hotness) * 0.5 + 0.5);
 
-                    children.Add(makeSimpleShape(PolyDefs[thing.shape].numSides, PolyDefs[thing.shape].skip,
+                    children.Add(makeApple(PolyDefs[thing.shape].numSides, PolyDefs[thing.shape].skip,
                         thing.size, thing.theta, thing.center, thing.brush,
                         thing.brushPulse, thing.size * 0.1, alpha));
                     things[i] = thing;
@@ -745,42 +805,10 @@ namespace NetGame.Utils
                     if (thing.state == ThingState.Dissolving)
                         thing.brush.Opacity = 1.0 - thing.dissolve * thing.dissolve;
 
-                    children.Add(makeSimpleShape(PolyDefs[thing.shape].numSides, PolyDefs[thing.shape].skip,
+                    children.Add(makeApple(PolyDefs[thing.shape].numSides, PolyDefs[thing.shape].skip,
                         thing.size, thing.theta, thing.center, thing.brush,
                         (thing.state == ThingState.Dissolving) ? null : thing.brush2, 1, 1));
                 }
-            }
-
-            // Show scores
-            if (scores.Count != 0)
-            {
-                int i = 0;
-                foreach (var score in scores)
-                {
-                    Console.WriteLine("Checking Score");
-                    Label label = MakeSimpleLabel(score.Value.ToString(),
-                        new Rect((0.02 + i * 0.6) * sceneRect.Width, 0.01 * sceneRect.Height, 
-                                 0.4 * sceneRect.Width, 0.3 * sceneRect.Height),
-                        new SolidColorBrush(Color.FromArgb(200, 255, 255, 255)));
-                    label.FontSize = Math.Max(1, Math.Min(sceneRect.Width / 12, sceneRect.Height / 12));
-                    children.Add(label);
-                    i++;
-                }
-            }
-
-            // Show game timer
-            if (gameMode != GameMode.Off)
-            {
-                TimeSpan span = DateTime.Now.Subtract(gameStartTime);
-                string text = span.Minutes.ToString() + ":" + span.Seconds.ToString("00");
-
-                Label timeText = MakeSimpleLabel(text,
-                    new Rect(0.1 * sceneRect.Width, 0.25 * sceneRect.Height, 0.89 * sceneRect.Width, 0.72 * sceneRect.Height),
-                    new SolidColorBrush(Color.FromArgb(160, 255, 255, 255)));
-                timeText.FontSize = Math.Max(1, sceneRect.Height / 16);
-                timeText.HorizontalContentAlignment = HorizontalAlignment.Right;
-                timeText.VerticalContentAlignment = VerticalAlignment.Bottom;
-                children.Add(timeText);
             }
         }
     }

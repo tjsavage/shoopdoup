@@ -55,13 +55,13 @@ namespace ShoopDoup
             minigames.Add(mg);
         }
 
-        public Minigame getDefaultMinigame()
+        /*public Minigame getDefaultMinigame()
         {
             Minigame defaultGame = new Minigame(null, MINIGAME_TYPE.Binary, "Catch the Object", "Catch the correct object");
             defaultGame.setController(new NetGameController(null, "", ""));
             defaultGame.getController().parentController = mainController;
             return defaultGame;
-        }
+        }*/
 
         public Minigame getMinigameOfType(MINIGAME_TYPE type)
         {
