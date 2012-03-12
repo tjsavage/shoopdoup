@@ -165,9 +165,17 @@
     <None Include="Resources\leaves.png" />
     <None Include="Resources\apple %281%29.png" />
     <None Include="Resources\backgroundTree %281%29.png" />
+    <None Include="Resources\qr.png" />
+    <None Include="Resources\WelcomeFollowing.png" />
+    <None Include="Resources\WelcomeAttention.png" />
+    <None Include="Resources\WelcomeSleep.png" />
+    <None Include="Resources\WelcomeBored.png" />
+    <None Include="Resources\BlueHandCursorX.png" />
+    <None Include="Resources\BlueHandCursor.png" />
     <None Include="Resources\motorcycle.png" />
     <Resource Include="Assets\background.png" />
     <Resource Include="Assets\fish.png" />
+    <Resource Include="Assets\whitesquare.jpg" />
     <Content Include="Microsoft.Research.Kinect.dll" />
     <None Include="Resources\TrafficLaneBackGround.png" />
   </ItemGroup>

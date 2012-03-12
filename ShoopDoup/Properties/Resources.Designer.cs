@@ -74,6 +74,20 @@ namespace ShoopDoup.Properties {
             }
         }
         
+        internal static System.Drawing.Bitmap BlueHandCursor {
+            get {
+                object obj = ResourceManager.GetObject("BlueHandCursor", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap BlueHandCursorX {
+            get {
+                object obj = ResourceManager.GetObject("BlueHandCursorX", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         internal static System.Drawing.Bitmap bubble {
             get {
                 object obj = ResourceManager.GetObject("bubble", resourceCulture);
@@ -164,6 +178,13 @@ namespace ShoopDoup.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+       
+        internal static System.Drawing.Bitmap qr {
+            get {
+                object obj = ResourceManager.GetObject("qr", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
         
         internal static System.Drawing.Bitmap ThinkingUpgame {
             get {
@@ -203,6 +224,13 @@ namespace ShoopDoup.Properties {
         internal static System.Drawing.Bitmap WelcomeSleep {
             get {
                 object obj = ResourceManager.GetObject("WelcomeSleep", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap whitesquare {
+            get {
+                object obj = ResourceManager.GetObject("whitesquare", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

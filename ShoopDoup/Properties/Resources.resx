@@ -139,18 +139,6 @@
   <data name="HandCursor" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\assets\handcursor.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="WelcomeAttention" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\assets\welcomeattention.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="WelcomeBored" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\assets\welcomebored.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="WelcomeFollowing" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\assets\welcomefollowing.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="WelcomeSleep" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\assets\welcomesleep.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
   <data name="ocean" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\assets\ocean.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -176,9 +164,31 @@
     <value>..\Resources\backgroundTree (2).png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="leaves" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\leaves.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    <value>..\Resources\leaves.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value></data>
+  <data name="BlueHandCursor" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BlueHandCursor.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="BlueHandCursorX" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BlueHandCursorX.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="whitesquare" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\assets\whitesquare.jpg;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value></data>
+  <data name="qr" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\qr.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="ThinkingUpgame" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ThinkingUpgame.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="WelcomeAttention" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\WelcomeAttention.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="WelcomeBored" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\WelcomeBored.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="WelcomeFollowing" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\WelcomeFollowing.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="WelcomeSleep" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\WelcomeSleep.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

@@ -50,13 +50,19 @@ namespace ShoopDoup
         List<Type> minigameControllers;
         Random randomGenerator = new Random();
 
+        System.Windows.Threading.DispatcherTimer instructionDisplayTimer;
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            SetupKinect();
+            instructionDisplayTimer = new System.Windows.Threading.DispatcherTimer();
+            instructionDisplayTimer.Interval = TimeSpan.FromMilliseconds(3000);
+            instructionDisplayTimer.Tick += SwitchController;
+            instructionDisplayTimer.IsEnabled = false;
+
             minigameFactory = new MinigameFactory();
             minigameFactory.mainController = this;
 
-            currentController = new NetGameController(null);// new CarStopperController(minigameFactory.getMinigameOfType(MINIGAME_TYPE.Association));//new StandbyController(); // new WhackAMoleController(minigameFactory.getMinigameOfType(Models.MINIGAME_TYPE.Association)); 
+            currentController = new StandbyController();
             currentController.ControllerFinished += switchMinigame;
             currentController.parentController = this;
             this.Content = currentController;
@@ -65,6 +71,7 @@ namespace ShoopDoup
             minigameControllers.Add(typeof(CarStopperController));
             minigameControllers.Add(typeof(PopTheBubblesController));
             minigameControllers.Add(typeof(NetGameController));
+            SetupKinect();
 
 
         }
@@ -86,35 +93,45 @@ namespace ShoopDoup
             if (currentController is StandbyController)
             {
                 int randomControllerIndex = randomGenerator.Next(minigameControllers.Count);
+                Minigame minigameToSwitchTo = minigameFactory.getMinigameOfType(MINIGAME_TYPE.Association);
+
+                ((StandbyController)currentController).setInstructionText(minigameToSwitchTo.getDescription());
+                instructionDisplayTimer.Start();
                 
                 switch (randomControllerIndex)
                 {
                     case 0:
-                        currentController = new CarStopperController(minigameFactory.getMinigameOfType(MINIGAME_TYPE.Association));
+                        currentController = new CarStopperController(minigameToSwitchTo);
                         break;
                     case 1:
-                        currentController = new PopTheBubblesController(minigameFactory.getMinigameOfType(MINIGAME_TYPE.Association));
+                        currentController = new PopTheBubblesController(minigameToSwitchTo);
                         break;
                     case 2:
-                        currentController = new NetGameController(minigameFactory.getMinigameOfType(MINIGAME_TYPE.Association));
+                        currentController = new NetGameController(minigameToSwitchTo);
                         break;
                 }
+
                 //currentController = //new CarStopperController(minigameFactory.getMinigameOfType(MINIGAME_TYPE.Association));
 
             }
             else
             {
                 currentController = new StandbyController();
+                this.Content = currentController;
             }
 
             currentController.ControllerFinished += switchMinigame;
+
+        }
+
+        private void SwitchController(object o, EventArgs e)
+        {
+            instructionDisplayTimer.Stop();
             this.Content = currentController;
         }
 
         private void SetupKinect()
         {
-            minigameFactory = new MinigameFactory();
-
             if (Runtime.Kinects.Count == 0)
             {
                 this.Title = "No Kinect connected";
@@ -156,13 +173,16 @@ namespace ShoopDoup
                                      select s).FirstOrDefault();
 
 
-            if (skeleton != null)
+            if (currentController != null)
             {
-                currentController.updateSkeleton(skeleton);
-            }
-            else
-            {
-                currentController.updateWithoutSkeleton();
+                if (skeleton != null)
+                {
+                    currentController.updateSkeleton(skeleton);
+                }
+                else
+                {
+                    currentController.updateWithoutSkeleton();
+                }
             }
         }
 

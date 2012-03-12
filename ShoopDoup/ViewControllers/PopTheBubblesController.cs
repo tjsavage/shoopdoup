@@ -48,7 +48,7 @@ namespace ShoopDoup.ViewControllers
         private System.Windows.Controls.Image leftHandCursor;
         private System.Windows.Controls.Image rightHandCursor;
         private List<Bubble> bubbles;
-        private Bubble instructionBubble;
+        private List<Bubble> instructionBubbles;
         private int MAX_BUBBLES = 10;
         private Random randomGen = new Random();
         private System.Windows.Threading.DispatcherTimer bubbleTimer;
@@ -69,6 +69,7 @@ namespace ShoopDoup.ViewControllers
         public PopTheBubblesController(Minigame game)
         {
             this.minigame = game;
+            this.instructionBubbles = new List<Bubble>();
             state = GAME_STATE.Instruction;
             StartInstructionTimer();
             bubbles = new List<Bubble>();
@@ -77,14 +78,11 @@ namespace ShoopDoup.ViewControllers
             LoadCursors();
             SetAssociateLabel();
             SetTimerLabel();
-            //StartGameTimer();
-            //StartBubbleTimer();
-            //StartRemoveTimer();
         }
 
         private void StartInstructionTimer()
         {
-            secondsLeft = 15;
+            secondsLeft = 11;
             this.instructionTimer = new System.Windows.Threading.DispatcherTimer();
             this.instructionTimer.Tick += instructUser;
             this.instructionTimer.Interval = TimeSpan.FromMilliseconds(1000);
@@ -116,28 +114,31 @@ namespace ShoopDoup.ViewControllers
             Canvas.SetTop(label, y + 5);
             Canvas.SetLeft(label, x + 5);
             Canvas.SetZIndex(label, 3);
-            instructionBubble = new Bubble(x, y, bubble, label);
+            instructionBubbles.Add(new Bubble(x, y, bubble, label));
+        }
+
+        private void removeBubble(int i)
+        {
+            mainCanvas.Children.Remove(instructionBubbles[i].bubble);
+            mainCanvas.Children.Remove(instructionBubbles[i].bubbleLabel);
+            //instructionBubbles.RemoveAt(i);
         }
 
         private void instructUser(Object sender, EventArgs e)
         {
-            mainCanvas.Children.Remove(instructionBubble.bubble);
-            mainCanvas.Children.Remove(instructionBubble.bubbleLabel);
+            //mainCanvas.Children.Remove(instructionBubble.bubble);
+            //mainCanvas.Children.Remove(instructionBubble.bubbleLabel);
             switch (secondsLeft)
             {
-                case 15: createInstructionBubble("Pop", 50, 150); break;
-                case 14: createInstructionBubble("The", 415, 200); break;
-                case 13: createInstructionBubble("Bubbles", 600, 250); break;
-                case 12: createInstructionBubble("That", 500, 100); break;
-                case 11: createInstructionBubble("Relate", 300, 300); break;
-                case 10: createInstructionBubble("To", 50, 250); break;
-                case 9: createInstructionBubble("The", 650, 100); break;
-                case 8: createInstructionBubble("Word", 300, 300); break;
-                case 7: createInstructionBubble("At", 150, 150); break;
-                case 6: createInstructionBubble("The", 100, 275); break;
-                case 5: createInstructionBubble("Top", 300, 250); break;
-                case 4: createInstructionBubble("Ready", 50, 175); break;
-                case 3: createInstructionBubble("GO!!", 350, 250); break;
+                case 11: createInstructionBubble("Pop The", 500, 150); break;
+                case 10: createInstructionBubble("Bubbles", 600, 200); break;
+                case 9: createInstructionBubble("That", 700, 150); break;
+                case 8: createInstructionBubble("Relate", 800, 200); break;
+                case 7: createInstructionBubble("To The", 700, 270); break;
+                case 6: createInstructionBubble("Word", 800, 320); break;
+                case 5: createInstructionBubble("At The Top!", 900, 270); break;
+                case 4: createInstructionBubble("Ready...", 1050, 400); break;
+                case 2: for (int i = 0; i < instructionBubbles.Count; i++) removeBubble(i); break;
             }
             secondsLeft--;
             if (secondsLeft == 0)
@@ -153,12 +154,21 @@ namespace ShoopDoup.ViewControllers
         private void SetAssociateLabel()
         {
             this.associateWithLabel = new Label();
-            associateWithLabel.FontSize = 40;
-            associateWithLabel.Foreground = System.Windows.Media.Brushes.White;
-            associateWithLabel.Content = "Germany";
+            int minigameRandom = randomGen.Next(0, minigame.getData().Count - 1);
+            String text = minigame.getData()[minigameRandom].getElementValue().ToLower();
+
+            TextBlock bubbleTextBlock = new TextBlock();
+            bubbleTextBlock.Text = text;
+            bubbleTextBlock.Foreground = System.Windows.Media.Brushes.White;
+            Viewbox bubbleViewBox = new Viewbox();
+            bubbleViewBox.Stretch = Stretch.Uniform;
+            bubbleViewBox.Height = 100;
+            bubbleViewBox.Width = 300;
+            bubbleViewBox.Child = bubbleTextBlock;
+            this.associateWithLabel.Content = bubbleViewBox;
             mainCanvas.Children.Add(associateWithLabel);
-            Canvas.SetTop(associateWithLabel, 0);
-            Canvas.SetLeft(associateWithLabel, 300);
+            Canvas.SetTop(associateWithLabel, 30);
+            Canvas.SetLeft(associateWithLabel, 450);
             Canvas.SetZIndex(associateWithLabel, 4);
         }
 
@@ -169,10 +179,10 @@ namespace ShoopDoup.ViewControllers
             scoreLabel = new Label();
             scoreLabel.Content = "SCORE: " + score;
             scoreLabel.FontSize = 40;
-            scoreLabel.Foreground = System.Windows.Media.Brushes.Green;
+            scoreLabel.Foreground = System.Windows.Media.Brushes.White;
             mainCanvas.Children.Add(scoreLabel);
-            Canvas.SetTop(scoreLabel, 500);
-            Canvas.SetLeft(scoreLabel, 600);
+            Canvas.SetTop(scoreLabel, 700);
+            Canvas.SetLeft(scoreLabel, 1000);
             Canvas.SetZIndex(scoreLabel, 4);
         }
 
@@ -211,42 +221,15 @@ namespace ShoopDoup.ViewControllers
         {
             background = new System.Windows.Controls.Image();
             background.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.OceanBackground);
-            background.Width = 785;
+            background.Width = 1270;
+            background.Height = 760;
             System.Windows.Controls.Image fish1 = new System.Windows.Controls.Image();
             fish1.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.fish);
-            fish1.Width = 50;
+            fish1.Width = 150;
             mainCanvas.Children.Add(fish1);
-            Canvas.SetTop(fish1, 150);
-            Canvas.SetLeft(fish1, 150);
+            Canvas.SetTop(fish1, 300);
+            Canvas.SetLeft(fish1, 300);
             Canvas.SetZIndex(fish1, 2);
-            System.Windows.Controls.Image fish2 = new System.Windows.Controls.Image();
-            fish2.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.fish);
-            fish2.Width = 75;
-            mainCanvas.Children.Add(fish2);
-            Canvas.SetTop(fish2, 275);
-            Canvas.SetLeft(fish2, 400);
-            Canvas.SetZIndex(fish2, 2);
-            System.Windows.Controls.Image fish3 = new System.Windows.Controls.Image();
-            fish3.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.fish);
-            fish3.Width = 60;
-            mainCanvas.Children.Add(fish3);
-            Canvas.SetTop(fish3, 125);
-            Canvas.SetLeft(fish3, 600);
-            Canvas.SetZIndex(fish3, 2);
-            System.Windows.Controls.Image fish4 = new System.Windows.Controls.Image();
-            fish4.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.fish);
-            fish4.Width = 80;
-            mainCanvas.Children.Add(fish4);
-            Canvas.SetTop(fish4, 350);
-            Canvas.SetLeft(fish4, 100);
-            Canvas.SetZIndex(fish4, 2);
-            System.Windows.Controls.Image fish5 = new System.Windows.Controls.Image();
-            fish5.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.fish);
-            fish5.Width = 80;
-            mainCanvas.Children.Add(fish5);
-            Canvas.SetTop(fish5, 100);
-            Canvas.SetLeft(fish5, 300);
-            Canvas.SetZIndex(fish5, 2);
             mainCanvas.Children.Add(background);
             Canvas.SetTop(background, 0);
             Canvas.SetLeft(background, 0);
@@ -284,11 +267,11 @@ namespace ShoopDoup.ViewControllers
             timeLeft = 60;
             this.timerLabel = new Label();
             timerLabel.FontSize = 40;
-            timerLabel.Foreground = System.Windows.Media.Brushes.Green;
+            timerLabel.Foreground = System.Windows.Media.Brushes.White;
             timerLabel.Content = "TIME: " + timeLeft;
             mainCanvas.Children.Add(timerLabel);
-            Canvas.SetTop(timerLabel, 500);
-            Canvas.SetLeft(timerLabel, 20);
+            Canvas.SetTop(timerLabel, 700);
+            Canvas.SetLeft(timerLabel, 70);
             Canvas.SetZIndex(timerLabel, 4);
         }
 
@@ -305,7 +288,7 @@ namespace ShoopDoup.ViewControllers
         {
             for (int i = 0; i < bubbles.Count; i++)
             {
-                if (x >= bubbles[i].x - 100 && x <= bubbles[i].x + 100 && y >= bubbles[i].y - 100 && y <= bubbles[i].y + 100)
+                if (x >= bubbles[i].x - 140 && x <= bubbles[i].x + 140 && y >= bubbles[i].y - 140 && y <= bubbles[i].y + 140)
                 {
                     return i;
                 }
@@ -318,7 +301,7 @@ namespace ShoopDoup.ViewControllers
         {
             for (int i = 0; i < bubbles.Count; i++)
             {
-                if (x > bubbles[i].x && x < bubbles[i].x + 100 && y > bubbles[i].y && y < bubbles[i].y + 100)
+                if (x > bubbles[i].x && x < bubbles[i].x + 140 && y > bubbles[i].y && y < bubbles[i].y + 140)
                 {
                     return i;
                 }
@@ -328,14 +311,14 @@ namespace ShoopDoup.ViewControllers
 
         private Boolean hitWords(String text)
         {
-            if (text.Equals("Germany")) 
-            {
-                return true;
-            }
+            TextBlock textBlock1 = ((TextBlock)((Viewbox)associateWithLabel.Content).Child);
+            if (textBlock1.Text.Equals(text)) return true;
+
             for (int i = 0; i < bubbles.Count; i++)
             {
-                TextBlock textBlock = ((TextBlock)((Viewbox)bubbles[i].bubbleLabel.Content).Child);
-                if (textBlock.Text.Equals(text)) return true;
+                TextBlock textBlock2 = ((TextBlock)((Viewbox)bubbles[i].bubbleLabel.Content).Child);
+               
+                if (textBlock2.Text.Equals(text)) return true;
             }
             return false;
         }
@@ -345,44 +328,45 @@ namespace ShoopDoup.ViewControllers
             if (bubbles.Count <= MAX_BUBBLES)
             {
                 int minigameRandom = randomGen.Next(0,minigame.getData().Count-1);
-                String text = minigame.getData()[minigameRandom].getElementValue();
+                String text = minigame.getData()[minigameRandom].getElementValue().ToLower();
 
                 while (hitWords(text))
                 {
                     minigameRandom = randomGen.Next(0, minigame.getData().Count - 1);
-                    text = minigame.getData()[minigameRandom].getElementValue();
+                    text = minigame.getData()[minigameRandom].getElementValue().ToLower();
                 }
 
                 System.Windows.Controls.Image bubble = new System.Windows.Controls.Image();
                 bubble.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.bubble);
-                bubble.Width = 100;
+                bubble.Width = randomGen.Next(60,140);
                 mainCanvas.Children.Add(bubble);
-                int x = randomGen.Next(20, 660);
-                int y = randomGen.Next(80, 380);
+                int x = randomGen.Next(60, 1050);
+                int y = randomGen.Next(115, 560);
 
-                while (hitBubble(x, y) != (-1))
+                while (hitBubble(x, y) != (-1) || ((y > 160) && (y < 450) && (x > 160) && (x < 450)) || ((y > 350) && (x > 725) && (x < 1200)))
                 {
-                    x = randomGen.Next(20, 660);
-                    y = randomGen.Next(80, 380);
+                    x = randomGen.Next(60, 1050);
+                    y = randomGen.Next(115, 560);
                 }
 
                 Label label = new Label();
                 TextBlock bubbleTextBlock = new TextBlock();
                 bubbleTextBlock.Text = text;
+                bubbleTextBlock.Foreground = System.Windows.Media.Brushes.DarkGreen;
                 Viewbox bubbleViewBox = new Viewbox();
                 bubbleViewBox.Stretch = Stretch.Uniform;
-                bubbleViewBox.Height = 80;
-                bubbleViewBox.Width = 80;
+                bubbleViewBox.Height = 100;
+                bubbleViewBox.Width = 100;
                 bubbleViewBox.Child = bubbleTextBlock;
                 label.Content = bubbleViewBox;
 
                 mainCanvas.Children.Add(label);
                 
-                Canvas.SetTop(bubble, y);
-                Canvas.SetLeft(bubble, x);
+                Canvas.SetTop(bubble, y + ((140-bubble.Width)/2));
+                Canvas.SetLeft(bubble, x + ((140-bubble.Width)/2));
                 Canvas.SetZIndex(bubble, 2);
-                Canvas.SetTop(label, y+5);
-                Canvas.SetLeft(label, x+5);
+                Canvas.SetTop(label, y+((140-112)/2));
+                Canvas.SetLeft(label, x+((140-112)/2));
                 Canvas.SetZIndex(label, 3);
                 Bubble newBubble = new Bubble(x, y, bubble,label);
                 bubbles.Add(newBubble);
@@ -394,15 +378,15 @@ namespace ShoopDoup.ViewControllers
         {
             if (state == GAME_STATE.GamePlay)
             {
-                highlightedHandBaseDepth = skeleton.Joints[JointID.Spine].ScaleTo(640, 480, .5f, .5f).Position.Z;
+                highlightedHandBaseDepth = skeleton.Joints[JointID.Spine].ScaleTo(1280, 800, .5f, .5f).Position.Z;
 
                 Joint rightHand = skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f);
                 Joint leftHand = skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f);
 
-                Canvas.SetTop(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.Y);
-                Canvas.SetLeft(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.X);
-                Canvas.SetTop(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.Y);
-                Canvas.SetLeft(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(640, 480, .5f, .5f).Position.X);
+                Canvas.SetTop(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(1280, 800, .5f, .5f).Position.Y);
+                Canvas.SetLeft(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(1280, 800, .5f, .5f).Position.X);
+                Canvas.SetTop(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(1280, 800, .5f, .5f).Position.Y);
+                Canvas.SetLeft(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(1280, 800, .5f, .5f).Position.X);
 
                 int x1 = Convert.ToInt32(Canvas.GetLeft(rightHandCursor));
                 int y1 = Convert.ToInt32(Canvas.GetTop(rightHandCursor));
@@ -456,7 +440,7 @@ namespace ShoopDoup.ViewControllers
                     else
                     {
                         textBlock.Foreground = System.Windows.Media.Brushes.Yellow;
-                        bubbles[hit1].setSelected(true);
+                        bubbles[hit2].setSelected(true);
                     }
                 }
                 for (int i = 0; i < bubbles.Count; i++)
@@ -465,7 +449,7 @@ namespace ShoopDoup.ViewControllers
                     {
                         TextBlock tb = ((TextBlock)((Viewbox)bubbles[i].bubbleLabel.Content).Child);
                         tb.Foreground = System.Windows.Media.Brushes.Black;
-                        bubbles[hit1].setSelected(false);
+                        bubbles[i].setSelected(false);
                     }
                 }
             }

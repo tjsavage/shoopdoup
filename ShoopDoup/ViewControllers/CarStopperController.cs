@@ -19,7 +19,7 @@ namespace ShoopDoup.ViewControllers
 {
     class CarStopperController : SceneController
     {
-        private enum GAME_STATE {Intro, Instructions, Playing, Exit};
+        private enum GAME_STATE {Instructions, Playing, Exit};
 
         struct Car
         {
@@ -82,6 +82,9 @@ namespace ShoopDoup.ViewControllers
         private String baseItem;
         private Label baseLabel;
 
+        private bool rightHandTooFarForward;
+        private bool leftHandTooFarForward;
+
         private System.Windows.Shapes.Rectangle[,] grid = new System.Windows.Shapes.Rectangle[3,3];
 
         private int[] laneHeights = {125, 250, 375, 500, 625};
@@ -89,7 +92,7 @@ namespace ShoopDoup.ViewControllers
 
         public CarStopperController(Minigame game)
         {
-            state = GAME_STATE.Intro;
+            state = GAME_STATE.Instructions;
             minigame = game;
             introTitle = minigame.getTitle();
             introDescription = minigame.getDescription();
@@ -103,8 +106,8 @@ namespace ShoopDoup.ViewControllers
 
             setupLabels();
 
-            mainCanvas.Children.Add(introTitleLabel);
-            mainCanvas.Children.Add(introDescriptionLabel);
+            //mainCanvas.Children.Add(introTitleLabel);
+            //mainCanvas.Children.Add(introDescriptionLabel);
             mainCanvas.Children.Add(instructionLabel);
             mainCanvas.Children.Add(exitLabel);
             mainCanvas.Children.Add(scoreLabel);
@@ -112,8 +115,7 @@ namespace ShoopDoup.ViewControllers
 
             this.transitionTimer = new System.Windows.Threading.DispatcherTimer();
             this.transitionTimer.Tick += moveToNextState;
-            this.transitionTimer.Interval = TimeSpan.FromMilliseconds(2000);
-            this.transitionTimer.Start();
+            this.transitionTimer.Interval = TimeSpan.FromMilliseconds(3000);
 
             this.fadeTimer = new System.Windows.Threading.DispatcherTimer();
             this.fadeTimer.Tick += fadeToNextState;
@@ -141,11 +143,11 @@ namespace ShoopDoup.ViewControllers
             this.introCarAnimatorTimer.Interval = TimeSpan.FromMilliseconds(20);
 
             rightHandCursor = new System.Windows.Controls.Image();
-            rightHandCursor.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.HandCursor);
+            rightHandCursor.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.BlueHandCursor);
             rightHandCursor.Width = 100;
 
             leftHandCursor = new System.Windows.Controls.Image();
-            System.Drawing.Bitmap leftHandBitmap = ShoopDoup.Properties.Resources.HandCursor;
+            System.Drawing.Bitmap leftHandBitmap = ShoopDoup.Properties.Resources.BlueHandCursor;
             leftHandBitmap.RotateFlip(RotateFlipType.RotateNoneFlipX);
             leftHandCursor.Source = this.toBitmapImage(leftHandBitmap);
             leftHandCursor.Width = 100;
@@ -154,7 +156,7 @@ namespace ShoopDoup.ViewControllers
             trafficBackgroundImage.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.TrafficLaneBackGround);
             trafficBackgroundImage.Width = 1280;
             trafficBackgroundImage.Height = 800;
-            trafficBackgroundImage.Opacity = 0;
+            trafficBackgroundImage.Opacity = .8;
 
             rightHandCursor.Opacity = 0;
             leftHandCursor.Opacity = 0;
@@ -175,6 +177,8 @@ namespace ShoopDoup.ViewControllers
             Canvas.SetLeft(trafficBackgroundImage, 0);
             Canvas.SetTop(trafficBackgroundImage, 0);
             Canvas.SetZIndex(trafficBackgroundImage, 0);
+
+            runIntro();
         }
 
         private void setupLabels()
@@ -187,18 +191,20 @@ namespace ShoopDoup.ViewControllers
             baseLabel = new Label();
 
             introTitleLabel.Content = introTitle;
-            introTitleLabel.FontSize = 40;
-            Canvas.SetLeft(introTitleLabel, 300);
+            introTitleLabel.FontSize = 60;
+            introTitleLabel.Foreground = System.Windows.Media.Brushes.Navy;
+            Canvas.SetLeft(introTitleLabel, 500);
             Canvas.SetTop(introTitleLabel, 100);
 
             introDescriptionLabel.Content = new TextBlock();
             ((TextBlock)(introDescriptionLabel.Content)).Text = introDescription;
+            ((TextBlock)(introDescriptionLabel.Content)).Foreground = System.Windows.Media.Brushes.Navy;
             ((TextBlock)(introDescriptionLabel.Content)).TextWrapping = 0;
             introDescriptionLabel.MaxWidth = 500;
-            introDescriptionLabel.FontSize = 40;
+            introDescriptionLabel.FontSize = 50;
             introDescriptionLabel.VerticalAlignment = VerticalAlignment.Center;
             introDescriptionLabel.HorizontalAlignment = HorizontalAlignment.Center;
-            Canvas.SetLeft(introDescriptionLabel, 200);
+            Canvas.SetLeft(introDescriptionLabel, 400);
             Canvas.SetTop(introDescriptionLabel, 300);
 
             instructionLabel.Content = new TextBlock();
@@ -223,23 +229,25 @@ namespace ShoopDoup.ViewControllers
 
             scoreLabel.Content = new TextBlock();
             ((TextBlock)(scoreLabel.Content)).Text = "Cars Stopped: 0";
+            ((TextBlock)(scoreLabel.Content)).Foreground = System.Windows.Media.Brushes.Navy;
             ((TextBlock)(scoreLabel.Content)).TextWrapping = 0;
             scoreLabel.MaxWidth = 500;
             scoreLabel.FontSize = 30;
-            Canvas.SetLeft(scoreLabel, 500);
-            Canvas.SetTop(scoreLabel, 500);
+            Canvas.SetLeft(scoreLabel, 1000);
+            Canvas.SetTop(scoreLabel, 10);
             Canvas.SetZIndex(scoreLabel, 10);
             ((TextBlock)scoreLabel.Content).Opacity = 0;
 
             baseLabel.Content = new TextBlock();
             ((TextBlock)(baseLabel.Content)).Text = baseItem;
+            ((TextBlock)(baseLabel.Content)).Foreground = System.Windows.Media.Brushes.Navy;
             ((TextBlock)(baseLabel.Content)).TextWrapping = 0;
             baseLabel.MaxWidth = 500;
             baseLabel.FontSize = 50;
-            Canvas.SetLeft(baseLabel, 300);
+            Canvas.SetLeft(baseLabel, 400);
             Canvas.SetTop(baseLabel, 0);
             Canvas.SetZIndex(baseLabel, 10);
-            ((TextBlock)baseLabel.Content).Opacity = 0;
+            ((TextBlock)baseLabel.Content).Opacity = 1;
 
             //runIntro();
         }
@@ -256,11 +264,16 @@ namespace ShoopDoup.ViewControllers
 
             if (state == GAME_STATE.Playing)
             {
+                int numCarsHighlighted = 0;
+
                 Joint rightHand = skeleton.Joints[JointID.HandRight].ScaleTo(1280, 800, .5f, .5f);
                 Joint leftHand = skeleton.Joints[JointID.HandLeft].ScaleTo(1280, 800, .5f, .5f);
 
                 double rightHandScale = skeleton.Joints[JointID.HandRight].Position.Z / highlightedHandBaseDepth;
                 double leftHandScale = skeleton.Joints[JointID.HandLeft].Position.Z / highlightedHandBaseDepth;
+
+                rightHandScale = Math.Min(rightHandScale, 2);
+                leftHandScale = Math.Min(leftHandScale, 2);
 
                 rightHandCursor.Height = 100 * rightHandScale;
                 rightHandCursor.Width = 100 * rightHandScale;
@@ -295,18 +308,19 @@ namespace ShoopDoup.ViewControllers
                         //Console.WriteLine("Right hand: " + rightHand.Position.Z + " \t Chest: " + highlightedHandBaseDepth);
                         if (Math.Abs(rightHand.Position.Z - highlightedHandBaseDepth) > depthDeltaForSelection)
                         {
-                            if (curTextBlock.Foreground == System.Windows.Media.Brushes.Yellow)
+                            //if (curTextBlock.Foreground == System.Windows.Media.Brushes.Yellow)
                             {
                                 toRemove.Add(key);
                             }
-                            else
+                            /*else
                             {
-                                curTextBlock.Foreground = System.Windows.Media.Brushes.Red;
-                            }
+                                rightHandTooFarForward = true;
+                            }*/
 
                         }
                         else
                         {
+                           // numCarsHighlighted++;
                             curTextBlock.Foreground = System.Windows.Media.Brushes.Yellow;
                         }
                     }
@@ -315,24 +329,25 @@ namespace ShoopDoup.ViewControllers
                         //Console.WriteLine("Right hand: " + rightHand.Position.Z + " \t Chest: " + highlightedHandBaseDepth);
                         if (Math.Abs(leftHand.Position.Z - highlightedHandBaseDepth) > depthDeltaForSelection)
                         {
-                            if (curTextBlock.Foreground == System.Windows.Media.Brushes.Yellow)
+                            //if (curTextBlock.Foreground == System.Windows.Media.Brushes.Yellow)
                             {
                                 toRemove.Add(key);
                             }
-                            else
+                            /*else
                             {
-                                curTextBlock.Foreground = System.Windows.Media.Brushes.Red;
-                            }
+                                leftHandTooFarForward = true;
+                            }*/
 
                         }
                         else
                         {
+                            //numCarsHighlighted++;
                             curTextBlock.Foreground = System.Windows.Media.Brushes.Yellow;
                         }
                     }
                     else
                     {
-                        curTextBlock.Foreground = System.Windows.Media.Brushes.Black;
+                        curTextBlock.Foreground = System.Windows.Media.Brushes.Navy;
                     }
                 }
 
@@ -516,12 +531,12 @@ namespace ShoopDoup.ViewControllers
                     addCarAt(-300, laneHeights[3], "word", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), false);
                     break;
                 case 2:
-                    addCarAt(-300, laneHeights[1], "over", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), false);
-                    addCarAt(-300, laneHeights[2], "aren't", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), false);
+                    addCarAt(-300, laneHeights[1], "down", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), false);
+                    addCarAt(-300, laneHeights[2], "are", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), false);
                     addCarAt(-300, laneHeights[3], "above", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), false);
                     break;
                 case 3:
-                    addCarAt(-300, laneHeights[1], "pull ", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), false);
+                    addCarAt(-300, laneHeights[1], "smash ", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), false);
                     addCarAt(-300, laneHeights[2], "that", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), false);
                     addCarAt(-300, laneHeights[3], "to the", carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), false);
                     break;
@@ -551,6 +566,7 @@ namespace ShoopDoup.ViewControllers
 
 
             carTextBlock.Text = label;
+            carTextBlock.Foreground = System.Windows.Media.Brushes.Navy;
             carViewbox.Height = 100;
             carViewbox.Width = 200;
             carViewbox.Child = carTextBlock;
