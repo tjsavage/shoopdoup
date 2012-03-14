@@ -209,11 +209,6 @@ namespace ShoopDoup.ViewControllers
             Canvas.SetTop(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(displayWidth, displayHeight, .5f, .5f).Position.Y);
             Canvas.SetLeft(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(displayWidth, displayHeight, .5f, .5f).Position.X);
 
-            if (startGameRect.Visibility==System.Windows.Visibility.Visible && skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.X < 400 && skeleton.Joints[JointID.HandRight].ScaleTo(640, 480, .5f, .5f).Position.Y < 300)
-            {
-                initNetGame();
-            }
-
             myNet.X1 = skeleton.Joints[JointID.HandRight].ScaleTo(displayWidth, displayHeight, .5f, .5f).Position.X+50;
             myNet.X2 = skeleton.Joints[JointID.HandLeft].ScaleTo(displayWidth, displayHeight, .5f, .5f).Position.X+50;
             myNet.Y1 = skeleton.Joints[JointID.HandRight].ScaleTo(displayWidth, displayHeight, .5f, .5f).Position.Y+50;

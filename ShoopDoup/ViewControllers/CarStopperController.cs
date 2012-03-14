@@ -82,6 +82,8 @@ namespace ShoopDoup.ViewControllers
         private String baseItem;
         private Label baseLabel;
 
+        private System.Windows.Controls.Image qrCode;
+
         private bool rightHandTooFarForward;
         private bool leftHandTooFarForward;
 
@@ -158,6 +160,11 @@ namespace ShoopDoup.ViewControllers
             trafficBackgroundImage.Height = 800;
             trafficBackgroundImage.Opacity = .8;
 
+            qrCode = new System.Windows.Controls.Image();
+            qrCode.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.qr);
+            qrCode.Height = 248;
+            qrCode.Width = 248;
+
             rightHandCursor.Opacity = 0;
             leftHandCursor.Opacity = 0;
 
@@ -217,7 +224,7 @@ namespace ShoopDoup.ViewControllers
             ((TextBlock)instructionLabel.Content).Opacity = 0;
 
             exitLabel.Content = new TextBlock();
-            ((TextBlock)(exitLabel.Content)).Text = "Thanks for playing! \n Your input is invaluable in creating accurate machine learning algorithms";
+            ((TextBlock)(exitLabel.Content)).Text = "Thanks for playing! \n Your input is invaluable in creating accurate machine learning algorithms\n To keep playing, scan the QR code";
             ((TextBlock)(exitLabel.Content)).TextWrapping = 0;
             exitLabel.MaxWidth = 500;
             exitLabel.FontSize = 40;
@@ -387,6 +394,10 @@ namespace ShoopDoup.ViewControllers
             }
             if (state == GAME_STATE.Exit)
             {
+                qrCode.Opacity = 0;
+                mainCanvas.Children.Add(qrCode);
+                Canvas.SetLeft(qrCode, 800);
+                Canvas.SetTop(qrCode, 500);
                 this.exitTimer.Start();
             }
         }
@@ -420,6 +431,7 @@ namespace ShoopDoup.ViewControllers
                 rightHandCursor.Opacity -= .02;
                 trafficBackgroundImage.Opacity -= .03;
                 ((TextBlock)exitLabel.Content).Opacity += .04;
+                qrCode.Opacity += .04;
                 ((TextBlock)scoreLabel.Content).Opacity -= .04;
                 ((TextBlock)baseLabel.Content).Opacity -= .04;
             }
@@ -504,7 +516,8 @@ namespace ShoopDoup.ViewControllers
             transitionTimer.Stop();
             fadeTimer.Stop();
             userExitedTimer.Stop();
-            ReturnToStandbyController();
+            moveToNextState(null, null);
+            //ReturnToStandbyController();
         }
 
         private void runIntro()
@@ -599,8 +612,8 @@ namespace ShoopDoup.ViewControllers
                 double curLabelLeft = Canvas.GetLeft(curLabel);
                 double curImageLeft = Canvas.GetLeft(curImage);
 
-                Canvas.SetLeft(curLabel, curLabelLeft + 3);
-                Canvas.SetLeft(curImage, curImageLeft + 3);
+                Canvas.SetLeft(curLabel, curLabelLeft + 4);
+                Canvas.SetLeft(curImage, curImageLeft + 4);
 
                 if (Canvas.GetLeft(curLabel) > mainCanvas.ActualWidth)
                 {

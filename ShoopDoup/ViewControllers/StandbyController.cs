@@ -210,7 +210,9 @@ namespace ShoopDoup.ViewControllers
 
         public void setInstructionText(String instructions)
         {
-            instructionIntroLabel.Content = instructions;
+            TextBlock contentBlock = (TextBlock)((Viewbox)instructionIntroLabel.Content).Child;
+            contentBlock.Text = instructions;
+            //instructionIntroLabel.FontSize = 50;
         }
 
         public override void updateWithoutSkeleton()
