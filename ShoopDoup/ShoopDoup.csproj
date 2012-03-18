@@ -160,6 +160,8 @@
     <Resource Include="Assets\CarStopperTruck.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\TwoDigitBlue.png" />
+    <None Include="Resources\blueText.png" />
     <None Include="Resources\ThreeDigitRed %281%29.png" />
     <None Include="Resources\ThreeDigitRed.png" />
     <None Include="Resources\TwoDigitRed.png" />
