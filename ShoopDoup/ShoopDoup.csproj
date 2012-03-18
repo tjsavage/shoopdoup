@@ -161,10 +161,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\ThinkingUpgame.png" />
-    <None Include="Resources\backgroundTree %282%29.png" />
-    <None Include="Resources\leaves.png" />
-    <None Include="Resources\apple %281%29.png" />
-    <None Include="Resources\backgroundTree %281%29.png" />
     <None Include="Resources\qr.png" />
     <None Include="Resources\WelcomeFollowing.png" />
     <None Include="Resources\WelcomeAttention.png" />
@@ -176,6 +172,10 @@
     <Resource Include="Assets\background.png" />
     <Resource Include="Assets\fish.png" />
     <Resource Include="Assets\whitesquare.jpg" />
+    <Resource Include="Assets\GreenHandCursor.png" />
+    <Resource Include="Assets\ThreeDigitGreen.png" />
+    <Resource Include="Assets\TwoDigitGreen.png" />
+    <Content Include="Assets\bobblepopwav.wav" />
     <Content Include="Microsoft.Research.Kinect.dll" />
     <None Include="Resources\TrafficLaneBackGround.png" />
   </ItemGroup>

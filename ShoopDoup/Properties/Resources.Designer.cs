@@ -88,6 +88,12 @@ namespace ShoopDoup.Properties {
             }
         }
         
+        internal static System.IO.UnmanagedMemoryStream bobblepopwav {
+            get {
+                return ResourceManager.GetStream("bobblepopwav", resourceCulture);
+            }
+        }
+        
         internal static System.Drawing.Bitmap bubble {
             get {
                 object obj = ResourceManager.GetObject("bubble", resourceCulture);
@@ -144,6 +150,13 @@ namespace ShoopDoup.Properties {
             }
         }
         
+        internal static System.Drawing.Bitmap GreenHandCursor {
+            get {
+                object obj = ResourceManager.GetObject("GreenHandCursor", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         internal static System.Drawing.Bitmap HandCursor {
             get {
                 object obj = ResourceManager.GetObject("HandCursor", resourceCulture);
@@ -178,7 +191,7 @@ namespace ShoopDoup.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-       
+        
         internal static System.Drawing.Bitmap qr {
             get {
                 object obj = ResourceManager.GetObject("qr", resourceCulture);
@@ -193,9 +206,23 @@ namespace ShoopDoup.Properties {
             }
         }
         
+        internal static System.Drawing.Bitmap ThreeDigitGreen {
+            get {
+                object obj = ResourceManager.GetObject("ThreeDigitGreen", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         internal static System.Drawing.Bitmap TrafficLaneBackGround {
             get {
                 object obj = ResourceManager.GetObject("TrafficLaneBackGround", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap TwoDigitGreen {
+            get {
+                object obj = ResourceManager.GetObject("TwoDigitGreen", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
