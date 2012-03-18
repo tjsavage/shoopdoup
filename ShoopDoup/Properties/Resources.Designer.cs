@@ -216,7 +216,7 @@ namespace ShoopDoup.Properties {
         internal static System.Drawing.Bitmap ThreeDigitGreen {
             get {
                 object obj = ResourceManager.GetObject("ThreeDigitGreen", resourceCulture);
-		return ((System.Drawimg.Bitmap)(obj));
+		return ((System.Drawing.Bitmap)(obj));
 		}
 	}
 

@@ -79,9 +79,10 @@ namespace ShoopDoup.ViewControllers
         private int timeLeft;
         private Label timerLabel;
         private int score;
-        private Label scoreLabel;
+        private Label scoreLabel = new Label();
         private Label associationLabel;
         private System.Windows.Threading.DispatcherTimer gameTimer;
+        private System.Windows.Threading.DispatcherTimer userExitedTimer;
         private System.Windows.Threading.DispatcherTimer instructionTimer;
         private int secondsLeft;
         private bool instructing;
@@ -201,6 +202,10 @@ namespace ShoopDoup.ViewControllers
             fallingThings.SetPolies(PolyType.All);
             fallingThings.SetGameMode(FallingThings.GameMode.Off);
 
+            this.userExitedTimer = new System.Windows.Threading.DispatcherTimer();
+            this.userExitedTimer.Tick += controllerFinished;
+            this.userExitedTimer.Interval = TimeSpan.FromMilliseconds(2000);
+
             Win32Timer.timeBeginPeriod(TimerResolution);
             var gameThread = new Thread(GameThread);
             gameThread.SetApartmentState(ApartmentState.STA);
@@ -220,6 +225,11 @@ namespace ShoopDoup.ViewControllers
                 leftHandCursor.Visibility = System.Windows.Visibility.Visible;
             }
 
+            if (userExitedTimer.IsEnabled)
+            {
+                userExitedTimer.Stop();
+            }
+
             Canvas.SetTop(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(displayWidth, displayHeight, .5f, .5f).Position.Y);
             Canvas.SetLeft(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(displayWidth, displayHeight, .5f, .5f).Position.X);
             Canvas.SetTop(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(displayWidth, displayHeight, .5f, .5f).Position.Y);
@@ -233,7 +243,7 @@ namespace ShoopDoup.ViewControllers
         
         public override void updateWithoutSkeleton()
         {
-            //ShowInstructions(playfield.Children,11);
+            userExitedTimer.Start();
         }
 
         private void UpdatePlayfieldSize()
@@ -262,7 +272,7 @@ namespace ShoopDoup.ViewControllers
 
         private void SetTimerLabel()
         {
-            timeLeft = 10;
+            timeLeft = 60;
             this.timerLabel = new Label();
             timerLabel.FontSize = 40;
             SolidColorBrush timerColor = new SolidColorBrush();
@@ -309,6 +319,7 @@ namespace ShoopDoup.ViewControllers
         private void instructUser(Object sender, EventArgs e)
         {
             secondsLeft--;
+            
             if (secondsLeft == 0 && run<7)
             {
                 run++;
@@ -316,13 +327,23 @@ namespace ShoopDoup.ViewControllers
                 this.instructionTimer.Stop();
                 StartInstructionTimer(1);
             }
-            else if(secondsLeft==0)
+            else if(secondsLeft==0 && run<9)
             {
                 run++;
                 ShowInstructions(playfield.Children, run);
                 this.instructionTimer.Stop();
-                StartInstructionTimer(8);
+                if (instructing)
+                {
+                    StartInstructionTimer(8);
+                }
             }
+            else if (secondsLeft == 0 && run == 9)
+            {
+                run++;
+                ShowInstructions(playfield.Children, run);
+                this.instructionTimer.Stop();
+            }
+           
         }
 
         private void countdown(object sender, EventArgs e)
@@ -336,17 +357,22 @@ namespace ShoopDoup.ViewControllers
             }
         }
 
+        private void controllerFinished(object o, EventArgs e)
+        {
+            userExitedTimer.Stop();
+            ReturnToStandbyController();
+        }
+
         private void EndGame()
         {
             instructing = true;
-            StartInstructionTimer(12);
+            StartInstructionTimer(7);
         }
 
         private void LoadScore()
         {
-            score = 8575;
-            scoreLabel = new Label();
-            scoreLabel.Content = score;
+            score = 0;
+            scoreLabel.Content = "000"+score;
             scoreLabel.FontSize = 40;
             SolidColorBrush timerColor = new SolidColorBrush();
             timerColor.Color = Color.FromArgb(255, 207, 20, 20);
@@ -486,9 +512,6 @@ namespace ShoopDoup.ViewControllers
                     break;
 
                 case 10:
-                    break;
-
-                case 11:
                     /*timerLabel.Visibility = System.Windows.Visibility.Hidden;
                     timerOutline.Visibility = System.Windows.Visibility.Hidden;
                     scoreLabel.Visibility = System.Windows.Visibility.Hidden;
@@ -499,7 +522,7 @@ namespace ShoopDoup.ViewControllers
                     ReturnToStandbyController();
                     break;
 
-                case 12:
+                case 11:
                     ReturnToStandbyController();
                     break;
 
@@ -577,9 +600,25 @@ namespace ShoopDoup.ViewControllers
             for (int i = 0; i < NumIntraFrames; ++i)
             {
                 HitType hit = fallingThings.LookForHits(myNet,1);
-                if (hit != null)
+                if (hit!= HitType.None)
                 {
-
+                    score = score + 50;
+                    if (score < 10)
+                    {
+                        scoreLabel.Content = "000" + score;
+                    }
+                    else if (score < 100)
+                    {
+                        scoreLabel.Content = "00" + score;
+                    }
+                    else if (score < 1000)
+                    {
+                        scoreLabel.Content = "0" + score;
+                    }
+                    else
+                    {
+                        scoreLabel.Content = "" + score;
+                    }
                 }
                 fallingThings.AdvanceFrame(playfield.Children,instructing);
 

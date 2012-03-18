@@ -62,6 +62,7 @@ namespace ShoopDoup
             minigameFactory = new MinigameFactory();
             minigameFactory.mainController = this;
 
+            currentController = new StandbyController();
             currentController.ControllerFinished += switchMinigame;
             currentController.parentController = this;
             this.Content = currentController;

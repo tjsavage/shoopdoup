@@ -659,8 +659,8 @@ namespace NetGame.Utils
 
             System.Windows.Controls.Image apple = new System.Windows.Controls.Image();
             apple.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.apple);
-            apple.SetValue(Canvas.LeftProperty, center.X - size);
-            apple.SetValue(Canvas.TopProperty, center.Y - size);
+            apple.SetValue(Canvas.LeftProperty, center.X);
+            apple.SetValue(Canvas.TopProperty, center.Y);
             apple.Height = 150;
             apples.Add(apple);
 
@@ -705,9 +705,9 @@ namespace NetGame.Utils
                 if (thing.state != ThingState.Dissolving)
                 {
                     apple.SetValue(Canvas.LeftProperty, thing.center.X - thing.size);
-                    apple.SetValue(Canvas.TopProperty, thing.center.Y - thing.size);
+                    apple.SetValue(Canvas.TopProperty, thing.center.Y-25);
                     label.SetValue(Canvas.LeftProperty, thing.center.X - thing.size*.84);
-                    label.SetValue(Canvas.TopProperty, thing.center.Y - thing.size*.84);
+                    label.SetValue(Canvas.TopProperty, thing.center.Y);
                     label.SetValue(Canvas.ZIndexProperty, 100);
                 }
 
