@@ -27,7 +27,7 @@ namespace ShoopDoup.ViewControllers
         #region Private State
         const int TimerResolution = 2;  // ms
         const int NumIntraFrames = 3;
-        const int MaxShapes = 7;
+        const int MaxShapes = 4;
         const double MaxFramerate = 70;
         const double MinFramerate = 15;
         const double MinShapeSize = 12;
@@ -66,38 +66,39 @@ namespace ShoopDoup.ViewControllers
         private System.Windows.Controls.Image background;
         private System.Windows.Controls.Image timerOutline;
         private System.Windows.Controls.Image scoreOutline;
+        private System.Windows.Controls.Image associationOutline;
 
         private System.Windows.Controls.Label label;
         private System.Windows.Shapes.Line myNet;
-        private System.Windows.Shapes.Rectangle startGameRect;
         private System.Windows.Controls.Canvas playfield;
+        private Random randomGen = new Random();
         private Minigame minigame;
 
         private enum STANDBY_STATE { Instructions, Playing, Exiting };
-        private BitmapImage instructionsBitmap;
 
         private int timeLeft;
         private Label timerLabel;
         private int score;
         private Label scoreLabel;
+        private Label associationLabel;
         private System.Windows.Threading.DispatcherTimer gameTimer;
         private System.Windows.Threading.DispatcherTimer instructionTimer;
         private int secondsLeft;
         private bool instructing;
         private int run;
+        private List<String> textLabels=new List<String>();
 
         #endregion Private State
 
 
         public NetGameController(Minigame game) : base()
         {
-            minigame = game;
+            this.minigame = game;
             start();
         }
             
         public override void start() {
             currentImage = new System.Windows.Controls.Image();
-            //state = STANDBY_STATE.Instructions;
             currentImage.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.ThinkingUpgame);
             currentImage.Width = 1280;
             currentImage.Height = 800;
@@ -182,7 +183,17 @@ namespace ShoopDoup.ViewControllers
             label.Visibility = System.Windows.Visibility.Hidden;
             currentImage.Visibility = System.Windows.Visibility.Hidden;
 
-            fallingThings = new FallingThings(MaxShapes, targetFramerate, NumIntraFrames, 1440, 900);
+            String text;
+
+            foreach (ShoopDoup.Models.DataObject obj in this.minigame.getData())
+            {
+                if (obj.getElementValue() != null)
+                {
+                    textLabels.Add(obj.getElementValue().ToLower());
+                }
+            }
+
+            fallingThings = new FallingThings(MaxShapes, targetFramerate, NumIntraFrames, 1440, 900,textLabels);
 
             fallingThings.SetGravity(dropGravity);
             fallingThings.SetDropRate(dropRate);
@@ -222,7 +233,7 @@ namespace ShoopDoup.ViewControllers
         
         public override void updateWithoutSkeleton()
         {
-            ReturnToStandbyController();
+            //ShowInstructions(playfield.Children,11);
         }
 
         private void UpdatePlayfieldSize()
@@ -251,7 +262,7 @@ namespace ShoopDoup.ViewControllers
 
         private void SetTimerLabel()
         {
-            timeLeft = 60;
+            timeLeft = 10;
             this.timerLabel = new Label();
             timerLabel.FontSize = 40;
             SolidColorBrush timerColor = new SolidColorBrush();
@@ -259,6 +270,7 @@ namespace ShoopDoup.ViewControllers
             timerLabel.Foreground = timerColor;
             timerLabel.Content = ":"+timeLeft;
             timerLabel.FontFamily = new FontFamily("Arial");
+            timerLabel.FontWeight = FontWeights.Bold;
             mainCanvas.Children.Add(timerLabel);
             Canvas.SetTop(timerLabel, 22);
             Canvas.SetLeft(timerLabel, 175);
@@ -309,7 +321,7 @@ namespace ShoopDoup.ViewControllers
                 run++;
                 ShowInstructions(playfield.Children, run);
                 this.instructionTimer.Stop();
-                StartInstructionTimer(9);
+                StartInstructionTimer(8);
             }
         }
 
@@ -320,8 +332,14 @@ namespace ShoopDoup.ViewControllers
             if (timeLeft == 0)
             {
                 gameTimer.Stop();
-                ReturnToStandbyController();
+                EndGame();
             }
+        }
+
+        private void EndGame()
+        {
+            instructing = true;
+            StartInstructionTimer(12);
         }
 
         private void LoadScore()
@@ -334,6 +352,7 @@ namespace ShoopDoup.ViewControllers
             timerColor.Color = Color.FromArgb(255, 207, 20, 20);
             scoreLabel.Foreground = timerColor;
             scoreLabel.FontFamily = new FontFamily("Arial");
+            scoreLabel.FontWeight = FontWeights.Bold;
             mainCanvas.Children.Add(scoreLabel);
             Canvas.SetTop(scoreLabel, 22);
             Canvas.SetLeft(scoreLabel, 40);
@@ -351,6 +370,41 @@ namespace ShoopDoup.ViewControllers
             Canvas.SetLeft(scoreOutline, 15);
             scoreOutline.Visibility = System.Windows.Visibility.Visible;
 
+        }
+
+        private void LoadAssociation()
+        {
+            this.associationLabel = new Label();
+            associationLabel.FontSize = 40;
+            SolidColorBrush timerColor = new SolidColorBrush();
+            timerColor.Color = Color.FromArgb(255, 207, 20, 20);
+            associationLabel.Foreground = timerColor;
+            int minigameRandom = randomGen.Next(0, minigame.getData().Count - 1);
+            String text = minigame.getData()[minigameRandom].getElementValue().ToUpper();
+            associationLabel.Content = text;
+            int width = text.Length * 26+30;
+            //double actualWidth = ;
+
+            associationLabel.FontFamily = new FontFamily("Arial");
+            associationLabel.FontWeight = FontWeights.Bold;
+            associationLabel.Width = width;
+
+            mainCanvas.Children.Add(associationLabel);
+            Canvas.SetTop(associationLabel, 22);
+            Canvas.SetLeft(associationLabel, 640-associationLabel.Width/2);
+            Canvas.SetZIndex(associationLabel, 301);
+
+            associationOutline = new System.Windows.Controls.Image();
+            associationOutline.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.redText);
+            //210x131
+            associationOutline.Width = 300;
+            associationOutline.Height = 65;
+            mainCanvas.Children.Add(associationOutline);
+
+            timerOutline.Visibility = System.Windows.Visibility.Visible;
+            Canvas.SetZIndex(associationOutline, 300);
+            Canvas.SetTop(associationOutline, 20);
+            Canvas.SetLeft(associationOutline, 470);
         }
 
         private void LoadBackground()
@@ -373,6 +427,22 @@ namespace ShoopDoup.ViewControllers
             Canvas.SetLeft(leaves, 0);
             Canvas.SetZIndex(leaves, 200);
 
+
+        }
+
+        private void ShowGoodbye()
+        {
+            Label endLabel = new Label();
+            endLabel.FontSize = 50;
+            SolidColorBrush timerColor = new SolidColorBrush();
+            timerColor.Color = Color.FromArgb(255, 207, 20, 20);
+            endLabel.Foreground = timerColor;
+            endLabel.Content = "Thanks For Playing!";
+            endLabel.FontFamily = new FontFamily("Arial");
+            mainCanvas.Children.Add(endLabel);
+            Canvas.SetTop(endLabel, 350);
+            Canvas.SetLeft(endLabel, 450);
+            Canvas.SetZIndex(endLabel, 301);
 
         }
 
@@ -410,8 +480,27 @@ namespace ShoopDoup.ViewControllers
                     SetTimerLabel();
                     StartGameTimer();
                     LoadScore();
+                    LoadAssociation();
                     instructing = false;
                     this.instructionTimer.Stop();
+                    break;
+
+                case 10:
+                    break;
+
+                case 11:
+                    /*timerLabel.Visibility = System.Windows.Visibility.Hidden;
+                    timerOutline.Visibility = System.Windows.Visibility.Hidden;
+                    scoreLabel.Visibility = System.Windows.Visibility.Hidden;
+                    scoreOutline.Visibility = System.Windows.Visibility.Hidden;
+                    associationLabel.Visibility = System.Windows.Visibility.Hidden;
+                    associationOutline.Visibility = System.Windows.Visibility.Hidden;
+                    ShowGoodbye();*/
+                    ReturnToStandbyController();
+                    break;
+
+                case 12:
+                    ReturnToStandbyController();
                     break;
 
                 default:
