@@ -27,7 +27,7 @@ namespace ShoopDoup.ViewControllers
         #region Private State
         const int TimerResolution = 2;  // ms
         const int NumIntraFrames = 3;
-        const int MaxShapes = 10;
+        const int MaxShapes = 7;
         const double MaxFramerate = 70;
         const double MinFramerate = 15;
         const double MinShapeSize = 12;
@@ -64,6 +64,9 @@ namespace ShoopDoup.ViewControllers
         private System.Windows.Controls.Image leftHandCursor;
         private System.Windows.Controls.Image rightHandCursor;
         private System.Windows.Controls.Image background;
+        private System.Windows.Controls.Image timerOutline;
+        private System.Windows.Controls.Image scoreOutline;
+
         private System.Windows.Controls.Label label;
         private System.Windows.Shapes.Line myNet;
         private System.Windows.Shapes.Rectangle startGameRect;
@@ -80,6 +83,8 @@ namespace ShoopDoup.ViewControllers
         private System.Windows.Threading.DispatcherTimer gameTimer;
         private System.Windows.Threading.DispatcherTimer instructionTimer;
         private int secondsLeft;
+        private bool instructing;
+        private int run;
 
         #endregion Private State
 
@@ -108,9 +113,10 @@ namespace ShoopDoup.ViewControllers
             leftHandCursor.Width = 100;
 
             playfield = new System.Windows.Controls.Canvas();
-            playfield.Width = 1440;
-            playfield.Height =900;
+            playfield.Width = 1280;
+            playfield.Height =800;
             UpdatePlayfieldSize();
+
 
             label = new Label();
             TextBlock bubbleTextBlock = new TextBlock();
@@ -157,8 +163,7 @@ namespace ShoopDoup.ViewControllers
             myNet.Visibility = System.Windows.Visibility.Hidden;
             playfield.Visibility = System.Windows.Visibility.Hidden;
 
-            StartInstructionTimer();
-            
+            initNetGame();
 
             /*speechRecognizer = SpeechRecognizer.Create();         //returns null if problem with speech prereqs or instantiation.
             if (speechRecognizer != null)
@@ -190,9 +195,9 @@ namespace ShoopDoup.ViewControllers
             gameThread.SetApartmentState(ApartmentState.STA);
             gameThread.Start();
             LoadBackground();
-            SetTimerLabel();
-            StartGameTimer();
-            LoadScore();
+            instructing = true;
+            run = 0;
+            StartInstructionTimer(1);
         }
 
         public override void updateSkeleton(SkeletonData skeleton)
@@ -249,12 +254,27 @@ namespace ShoopDoup.ViewControllers
             timeLeft = 60;
             this.timerLabel = new Label();
             timerLabel.FontSize = 40;
-            timerLabel.Foreground = System.Windows.Media.Brushes.Red;
-            timerLabel.Content = "TIME: " + timeLeft;
+            SolidColorBrush timerColor = new SolidColorBrush();
+            timerColor.Color = Color.FromArgb(255, 207, 20, 20);
+            timerLabel.Foreground = timerColor;
+            timerLabel.Content = ":"+timeLeft;
+            timerLabel.FontFamily = new FontFamily("Arial");
             mainCanvas.Children.Add(timerLabel);
-            Canvas.SetTop(timerLabel, 700);
-            Canvas.SetLeft(timerLabel, 20);
-            Canvas.SetZIndex(timerLabel, 4);
+            Canvas.SetTop(timerLabel, 22);
+            Canvas.SetLeft(timerLabel, 175);
+            Canvas.SetZIndex(timerLabel, 301);
+
+            timerOutline = new System.Windows.Controls.Image();
+            timerOutline.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.TwoDigitRed);
+            //210x131
+            timerOutline.Width = 100;
+            timerOutline.Height = 65;
+            mainCanvas.Children.Add(timerOutline);
+
+            timerOutline.Visibility = System.Windows.Visibility.Visible;
+            Canvas.SetZIndex(timerOutline, 300);
+            Canvas.SetTop(timerOutline, 20);
+            Canvas.SetLeft(timerOutline, 160);
         }
 
         private void StartGameTimer()
@@ -265,30 +285,38 @@ namespace ShoopDoup.ViewControllers
             this.gameTimer.Start();
         }
 
-        private void StartInstructionTimer()
+        private void StartInstructionTimer(int time)
         {
-            secondsLeft = 8;
+            secondsLeft = time;
             this.instructionTimer = new System.Windows.Threading.DispatcherTimer();
             this.instructionTimer.Tick += instructUser;
-            this.instructionTimer.Interval = TimeSpan.FromMilliseconds(1000);
+            this.instructionTimer.Interval = TimeSpan.FromMilliseconds(700);
             this.instructionTimer.Start();
         }
 
         private void instructUser(Object sender, EventArgs e)
         {
             secondsLeft--;
-            if (secondsLeft == 0)
+            if (secondsLeft == 0 && run<7)
             {
-                initNetGame();
-                StartGameTimer();
+                run++;
+                ShowInstructions(playfield.Children, run);
                 this.instructionTimer.Stop();
+                StartInstructionTimer(1);
+            }
+            else if(secondsLeft==0)
+            {
+                run++;
+                ShowInstructions(playfield.Children, run);
+                this.instructionTimer.Stop();
+                StartInstructionTimer(9);
             }
         }
 
         private void countdown(object sender, EventArgs e)
         {
             timeLeft--;
-            timerLabel.Content = "TIME: " + timeLeft;
+            timerLabel.Content = ":" + timeLeft;
             if (timeLeft == 0)
             {
                 gameTimer.Stop();
@@ -298,15 +326,31 @@ namespace ShoopDoup.ViewControllers
 
         private void LoadScore()
         {
-            score = 0;
+            score = 8575;
             scoreLabel = new Label();
-            scoreLabel.Content = "SCORE: " + score;
+            scoreLabel.Content = score;
             scoreLabel.FontSize = 40;
-            scoreLabel.Foreground = System.Windows.Media.Brushes.Red;
+            SolidColorBrush timerColor = new SolidColorBrush();
+            timerColor.Color = Color.FromArgb(255, 207, 20, 20);
+            scoreLabel.Foreground = timerColor;
+            scoreLabel.FontFamily = new FontFamily("Arial");
             mainCanvas.Children.Add(scoreLabel);
-            Canvas.SetTop(scoreLabel, 700);
-            Canvas.SetLeft(scoreLabel, 1050);
-            Canvas.SetZIndex(scoreLabel, 4);
+            Canvas.SetTop(scoreLabel, 22);
+            Canvas.SetLeft(scoreLabel, 40);
+            Canvas.SetZIndex(scoreLabel, 301);
+
+            scoreOutline = new System.Windows.Controls.Image();
+            scoreOutline.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.ThreeDigitRed);
+            scoreOutline.Height = 65;
+            scoreOutline.Width = 150;
+
+            mainCanvas.Children.Add(scoreOutline);
+
+            Canvas.SetZIndex(scoreOutline, 300);
+            Canvas.SetTop(scoreOutline, 20);
+            Canvas.SetLeft(scoreOutline, 15);
+            scoreOutline.Visibility = System.Windows.Visibility.Visible;
+
         }
 
         private void LoadBackground()
@@ -325,10 +369,55 @@ namespace ShoopDoup.ViewControllers
             leaves.Width = 1280;
             leaves.Height = 300;
             mainCanvas.Children.Add(leaves);
-            Canvas.SetTop(leaves, -150);
+            Canvas.SetTop(leaves, -145);
             Canvas.SetLeft(leaves, 0);
             Canvas.SetZIndex(leaves, 200);
 
+
+        }
+
+        public void ShowInstructions(UIElementCollection children, int run)
+        {
+            switch (run)
+            {
+
+                case 1:
+                    fallingThings.DropNewThing(PolyType.Square, 100, 440, Color.FromRgb(255, 255, 0), children, "Move");
+                    break;
+                case 2:
+                    fallingThings.DropNewThing(PolyType.Square, 100, 640, Color.FromRgb(255, 255, 0), children, "your");
+                    break;
+                case 3:
+                    fallingThings.DropNewThing(PolyType.Square, 100, 840, Color.FromRgb(255, 255, 0), children, "hands");
+                    break;
+                case 4:
+                    fallingThings.DropNewThing(PolyType.Square, 100, 440, Color.FromRgb(255, 255, 0), children, "to");
+                    break;
+                case 5:
+                    fallingThings.DropNewThing(PolyType.Square, 100, 640, Color.FromRgb(255, 255, 0), children, "catch");
+                    break;
+                case 6:
+                    fallingThings.DropNewThing(PolyType.Square, 100, 840, Color.FromRgb(255, 255, 0), children, "the");
+                    break;
+                case 7:
+                    fallingThings.DropNewThing(PolyType.Square, 100, 540, Color.FromRgb(255, 255, 0), children, "falling");
+                    break;
+                case 8:
+                    fallingThings.DropNewThing(PolyType.Square, 100, 740, Color.FromRgb(255, 255, 0), children, "apples!");
+                    break;
+
+                case 9:
+                    SetTimerLabel();
+                    StartGameTimer();
+                    LoadScore();
+                    instructing = false;
+                    this.instructionTimer.Stop();
+                    break;
+
+                default:
+                    break;
+
+            }
 
         }
 
@@ -403,7 +492,7 @@ namespace ShoopDoup.ViewControllers
                 {
 
                 }
-                fallingThings.AdvanceFrame(playfield.Children);
+                fallingThings.AdvanceFrame(playfield.Children,instructing);
 
             }
 

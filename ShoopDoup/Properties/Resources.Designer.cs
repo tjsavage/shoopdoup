@@ -209,6 +209,13 @@ namespace ShoopDoup.Properties {
         internal static System.Drawing.Bitmap ThreeDigitGreen {
             get {
                 object obj = ResourceManager.GetObject("ThreeDigitGreen", resourceCulture);
+		return ((System.Drawimg.Bitmap)(obj));
+		}
+	}
+
+        internal static System.Drawing.Bitmap ThreeDigitRed {
+            get {
+                object obj = ResourceManager.GetObject("ThreeDigitRed", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -223,6 +230,13 @@ namespace ShoopDoup.Properties {
         internal static System.Drawing.Bitmap TwoDigitGreen {
             get {
                 object obj = ResourceManager.GetObject("TwoDigitGreen", resourceCulture);
+		return ((System.Drawing.Bitmap)(obj));
+		}
+	}
+
+        internal static System.Drawing.Bitmap TwoDigitRed {
+            get {
+                object obj = ResourceManager.GetObject("TwoDigitRed", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
