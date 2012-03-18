@@ -88,6 +88,12 @@ namespace ShoopDoup.Properties {
             }
         }
         
+        internal static System.IO.UnmanagedMemoryStream bobblepopwav {
+            get {
+                return ResourceManager.GetStream("bobblepopwav", resourceCulture);
+            }
+        }
+        
         internal static System.Drawing.Bitmap bubble {
             get {
                 object obj = ResourceManager.GetObject("bubble", resourceCulture);
@@ -140,6 +146,13 @@ namespace ShoopDoup.Properties {
         internal static System.Drawing.Bitmap GameFrame {
             get {
                 object obj = ResourceManager.GetObject("GameFrame", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap GreenHandCursor {
+            get {
+                object obj = ResourceManager.GetObject("GreenHandCursor", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -200,6 +213,13 @@ namespace ShoopDoup.Properties {
             }
         }
         
+        internal static System.Drawing.Bitmap ThreeDigitGreen {
+            get {
+                object obj = ResourceManager.GetObject("ThreeDigitGreen", resourceCulture);
+		return ((System.Drawimg.Bitmap)(obj));
+		}
+	}
+
         internal static System.Drawing.Bitmap ThreeDigitRed {
             get {
                 object obj = ResourceManager.GetObject("ThreeDigitRed", resourceCulture);
@@ -214,6 +234,13 @@ namespace ShoopDoup.Properties {
             }
         }
         
+        internal static System.Drawing.Bitmap TwoDigitGreen {
+            get {
+                object obj = ResourceManager.GetObject("TwoDigitGreen", resourceCulture);
+		return ((System.Drawing.Bitmap)(obj));
+		}
+	}
+
         internal static System.Drawing.Bitmap TwoDigitRed {
             get {
                 object obj = ResourceManager.GetObject("TwoDigitRed", resourceCulture);
