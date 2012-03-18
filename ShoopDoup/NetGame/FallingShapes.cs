@@ -338,6 +338,7 @@ namespace NetGame.Utils
         private List<Label> appleLabels = new List<Label>();
         private List<String> labelText = new List<String>();
         private List<String> usedLabels = new List<String>();
+        private List<double> appleLocations = new List<double>();
         private const double DissolveTime = 0.4;
         private int maxThings = 0;
         private Rect sceneRect;
@@ -372,7 +373,7 @@ namespace NetGame.Utils
             sceneRect.Height = sceneHeight;
             shapeSize = sceneRect.Height * baseShapeSize / 1000.0;
             expandingRate = Math.Exp(Math.Log(6.0) / (targetFrameRate * DissolveTime));
-            labelText.Add("Lebenon");
+            labelText.Add("Lebanon");
             labelText.Add("China");
             labelText.Add("Israel");
             labelText.Add("Serbia");
@@ -583,20 +584,29 @@ namespace NetGame.Utils
             return allHits;
         }
 
-        private void DropNewThing(PolyType newShape, double newSize, Color newColor, UIElementCollection children /*, List<ShoopDoup.Models.DataObject> data*/)
+        public void DropNewThing(PolyType newShape, double newSize, double appleLocation ,Color newColor, UIElementCollection children, String word /*, List<ShoopDoup.Models.DataObject> data*/)
         {
             // Only drop within the center "square" area 
+            double dropX;
             double fDropWidth = (sceneRect.Bottom - sceneRect.Top);
             if (fDropWidth > sceneRect.Right - sceneRect.Left)
                 fDropWidth = sceneRect.Right - sceneRect.Left;
+            if (appleLocation == 0)
+            {
+                dropX = rnd.NextDouble() * fDropWidth + (sceneRect.Left + sceneRect.Right - fDropWidth) / 2;
+            }
+            else
+            {
+                dropX = appleLocation;
+            }
 
             var newThing = new Thing()
             {
-                size = newSize,
+                size = 125,
                 yVelocity = (0.5 * rnd.NextDouble() - 0.25) / targetFrameRate,
                 xVelocity = 0,
                 shape = newShape,
-                center = new Point(rnd.NextDouble() * fDropWidth + (sceneRect.Left + sceneRect.Right - fDropWidth) / 2, sceneRect.Top - newSize),
+                center = new Point(dropX, sceneRect.Top - newSize),
                 spinRate = (rnd.NextDouble() * 12.0 - 6.0) * 2.0 * Math.PI / targetFrameRate / 4.0,
                 theta = 0,
                 timeLastHit = DateTime.MinValue,
@@ -613,19 +623,25 @@ namespace NetGame.Utils
             };
             things.Add(newThing);
 
-            int randomLabel = rnd.Next(0, labelText.Count - 1);
-            String text = labelText[randomLabel];
+            String text = word;
 
-            while (usedLabels.Contains(text))
+            if (word == null)
             {
-                if(usedLabels.Count>labelText.Count-5){
-                    usedLabels.Clear();
-                }
-                randomLabel = rnd.Next(0, labelText.Count - 1);
-                text = labelText[randomLabel];
-            }
+                int randomLabel = rnd.Next(0, labelText.Count - 1);
+                 text = labelText[randomLabel];
 
-            usedLabels.Add(text);
+                while (usedLabels.Contains(text))
+                {
+                    if (usedLabels.Count > labelText.Count - 5)
+                    {
+                        usedLabels.Clear();
+                    }
+                    randomLabel = rnd.Next(0, labelText.Count - 1);
+                    text = labelText[randomLabel];
+                }
+                usedLabels.Add(text);
+            }
+            
 
             Label label = new Label();
             TextBlock bubbleTextBlock = new TextBlock();
@@ -636,7 +652,7 @@ namespace NetGame.Utils
             Viewbox bubbleViewBox = new Viewbox();
             bubbleViewBox.Stretch = Stretch.Uniform;
             bubbleViewBox.Height = 80;
-            bubbleViewBox.Width = 80;
+            bubbleViewBox.Width = 100;
             bubbleViewBox.Child = bubbleTextBlock;
             label.Content = bubbleViewBox;
             appleLabels.Add(label);
@@ -668,7 +684,7 @@ namespace NetGame.Utils
             apple.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.apple);
             apple.SetValue(Canvas.LeftProperty, center.X - size);
             apple.SetValue(Canvas.TopProperty, center.Y - size);
-            apple.Height = 100;
+            apple.Height = 150;
             apples.Add(apple);
 
             return apple;
@@ -694,7 +710,7 @@ namespace NetGame.Utils
             return label;
         }
 
-        public void AdvanceFrame(UIElementCollection children/*, List<ShoopDoup.Models.DataObject> data*/)
+        public void AdvanceFrame(UIElementCollection children, bool instructing/*, List<ShoopDoup.Models.DataObject> data*/)
         {
             // Move all things by one step, accounting for gravity
             for (int i = 0; i < things.Count; i++)
@@ -713,8 +729,8 @@ namespace NetGame.Utils
                 {
                     apple.SetValue(Canvas.LeftProperty, thing.center.X - thing.size);
                     apple.SetValue(Canvas.TopProperty, thing.center.Y - thing.size);
-                    label.SetValue(Canvas.LeftProperty, thing.center.X - thing.size);
-                    label.SetValue(Canvas.TopProperty, thing.center.Y - thing.size);
+                    label.SetValue(Canvas.LeftProperty, thing.center.X - thing.size*.84);
+                    label.SetValue(Canvas.TopProperty, thing.center.Y - thing.size*.84);
                     label.SetValue(Canvas.ZIndexProperty, 100);
                 }
 
@@ -747,12 +763,14 @@ namespace NetGame.Utils
                 Thing thing = things[i];
                 Image apple = apples[i];
                 Label label = appleLabels[i];
+                //double appleLocation = appleLocations[i];
                 //String text = labelText[i];
                 if (thing.state == ThingState.Remove)
                 {
                     things.Remove(thing);
                     apples.Remove(apple);
                     appleLabels.Remove(label);
+                    //appleLocations.Remove(appleLocation);
                     //labelText.Remove(text);
                     children.Remove(apple);
                     children.Remove(label);
@@ -761,7 +779,7 @@ namespace NetGame.Utils
             }
 
             // Create any new things to drop based on dropRate
-            if ((things.Count < maxThings) && (rnd.NextDouble() < dropRate / targetFrameRate) && (polyTypes != PolyType.None))
+            if (!instructing && (things.Count < maxThings) && (rnd.NextDouble() < dropRate / targetFrameRate) && (polyTypes != PolyType.None))
             {
                 PolyType[] alltypes = {PolyType.Square};
                 byte r = baseColor.R;
@@ -787,46 +805,7 @@ namespace NetGame.Utils
                     tryType = alltypes[rnd.Next(alltypes.Length)];
                 } while ((polyTypes & tryType) == 0);
 
-                DropNewThing(tryType, shapeSize, Color.FromRgb(r, g, b),children /*,data*/);
-            }
-        }
-
-        public void DrawFrame(UIElementCollection children)
-        {
-            frameCount++;
-
-            // Draw all shapes in the scene
-            for (int i = 0; i < things.Count; i++)
-            {
-                Thing thing = things[i];
-                if (thing.brush == null)
-                {
-                    thing.brush = new SolidColorBrush(thing.color);
-                    double factor = 0.4 + ((double)thing.color.R + thing.color.G + thing.color.B) / 1600;
-                    thing.brush2 = new SolidColorBrush(Color.FromRgb((byte)(255 - (255 - thing.color.R) * factor),
-                                                                     (byte)(255 - (255 - thing.color.G) * factor),
-                                                                     (byte)(255 - (255 - thing.color.B) * factor)));
-                    thing.brushPulse = new SolidColorBrush(Color.FromRgb(255, 255, 255));
-                }
-
-                if (thing.state == ThingState.Bouncing)  // Pulsate edges
-                {
-                    double alpha = (Math.Cos(0.15 * (thing.flashCount++) * thing.hotness) * 0.5 + 0.5);
-
-                    children.Add(makeApple(PolyDefs[thing.shape].numSides, PolyDefs[thing.shape].skip,
-                        thing.size, thing.theta, thing.center, thing.brush,
-                        thing.brushPulse, thing.size * 0.1, alpha));
-                    things[i] = thing;
-                }
-                else
-                {
-                    if (thing.state == ThingState.Dissolving)
-                        thing.brush.Opacity = 1.0 - thing.dissolve * thing.dissolve;
-
-                    children.Add(makeApple(PolyDefs[thing.shape].numSides, PolyDefs[thing.shape].skip,
-                        thing.size, thing.theta, thing.center, thing.brush,
-                        (thing.state == ThingState.Dissolving) ? null : thing.brush2, 1, 1));
-                }
+                DropNewThing(tryType, shapeSize, 0,Color.FromRgb(r, g, b),children, null /*,data*/);
             }
         }
     }

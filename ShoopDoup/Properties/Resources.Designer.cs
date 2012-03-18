@@ -178,7 +178,7 @@ namespace ShoopDoup.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
-       
+        
         internal static System.Drawing.Bitmap qr {
             get {
                 object obj = ResourceManager.GetObject("qr", resourceCulture);
@@ -193,9 +193,23 @@ namespace ShoopDoup.Properties {
             }
         }
         
+        internal static System.Drawing.Bitmap ThreeDigitRed {
+            get {
+                object obj = ResourceManager.GetObject("ThreeDigitRed", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         internal static System.Drawing.Bitmap TrafficLaneBackGround {
             get {
                 object obj = ResourceManager.GetObject("TrafficLaneBackGround", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap TwoDigitRed {
+            get {
+                object obj = ResourceManager.GetObject("TwoDigitRed", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

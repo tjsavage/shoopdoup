@@ -164,7 +164,8 @@
     <value>..\Resources\backgroundTree (2).png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="leaves" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\leaves.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value></data>
+    <value>..\Resources\leaves.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="BlueHandCursor" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\BlueHandCursor.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -191,5 +192,11 @@
   </data>
   <data name="WelcomeSleep" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\WelcomeSleep.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="ThreeDigitRed" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\ThreeDigitRed (1).png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="TwoDigitRed" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TwoDigitRed.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>
