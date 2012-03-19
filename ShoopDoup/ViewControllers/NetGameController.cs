@@ -409,7 +409,6 @@ namespace ShoopDoup.ViewControllers
             String text = minigame.getData()[minigameRandom].getElementValue().ToUpper();
             associationLabel.Content = text;
             int width = text.Length * 26+30;
-            //double actualWidth = ;
 
             associationLabel.FontFamily = new FontFamily("Arial");
             associationLabel.FontWeight = FontWeights.Bold;
@@ -423,20 +422,20 @@ namespace ShoopDoup.ViewControllers
             associationOutline = new System.Windows.Controls.Image();
             associationOutline.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.redText);
             //210x131
-            associationOutline.Width = 300;
+            //associationOutline.Width = 300;
             associationOutline.Height = 65;
             mainCanvas.Children.Add(associationOutline);
 
             timerOutline.Visibility = System.Windows.Visibility.Visible;
             Canvas.SetZIndex(associationOutline, 300);
             Canvas.SetTop(associationOutline, 20);
-            Canvas.SetLeft(associationOutline, 470);
+            Canvas.SetLeft(associationOutline, 415);
         }
 
         private void LoadBackground()
         {
             background = new System.Windows.Controls.Image();
-            background.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.backgroundTree);
+            background.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.newBackgroundTree);
             background.Width = 1280;
             background.Height = 800;
             mainCanvas.Children.Add(background);

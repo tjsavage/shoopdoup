@@ -217,7 +217,10 @@
   <data name="TwoDigitBlue" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\TwoDigitBlue.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="newBackgroundTree" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\newBackgroundTree.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="redText" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\redText.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+    <value>..\Resources\redText (1).png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>
