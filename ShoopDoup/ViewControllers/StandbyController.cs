@@ -84,14 +84,16 @@ namespace ShoopDoup.ViewControllers
             instructionIntroLabel = new Label();
 
             instructionIntroLabel.Height = 500;
-            instructionIntroLabel.Width = 800;
+            instructionIntroLabel.Width = 750;
             instructionTextBlock.Foreground = System.Windows.Media.Brushes.Navy;
+            instructionTextBlock.TextWrapping = TextWrapping.Wrap;
             instructionViewbox.Height = 500;
-            instructionViewbox.Width = 800;
-            instructionTextBlock.FontSize = 50;
+            instructionViewbox.Width = 750;
             instructionViewbox.Child = instructionTextBlock;
             instructionIntroLabel.Content = instructionViewbox;
             instructionViewbox.Stretch = Stretch.Uniform;
+            instructionViewbox.VerticalAlignment = System.Windows.VerticalAlignment.Stretch;
+            instructionTextBlock.HorizontalAlignment = System.Windows.HorizontalAlignment.Stretch;
             instructionIntroLabel.Opacity = 0;
 
             Canvas.SetLeft(genericIntroLabel, 400);
@@ -212,6 +214,9 @@ namespace ShoopDoup.ViewControllers
         {
             TextBlock contentBlock = (TextBlock)((Viewbox)instructionIntroLabel.Content).Child;
             contentBlock.Text = instructions;
+            ((Viewbox)instructionIntroLabel.Content).Height = 500;
+            ((Viewbox)instructionIntroLabel.Content).Width = 800;
+
             //instructionIntroLabel.FontSize = 50;
         }
 

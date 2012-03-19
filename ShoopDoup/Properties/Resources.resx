@@ -211,6 +211,12 @@
   <data name="TwoDigitRed" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\TwoDigitRed.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="blueText" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\blueText.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="TwoDigitBlue" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TwoDigitBlue.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="redText" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\redText.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>

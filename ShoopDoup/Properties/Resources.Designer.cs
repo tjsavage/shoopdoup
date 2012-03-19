@@ -88,6 +88,13 @@ namespace ShoopDoup.Properties {
             }
         }
         
+        internal static System.Drawing.Bitmap blueText {
+            get {
+                object obj = ResourceManager.GetObject("blueText", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         internal static System.IO.UnmanagedMemoryStream bobblepopwav {
             get {
                 return ResourceManager.GetStream("bobblepopwav", resourceCulture);
@@ -219,7 +226,6 @@ namespace ShoopDoup.Properties {
 		return ((System.Drawing.Bitmap)(obj));
 		}
 	}
-
         internal static System.Drawing.Bitmap ThreeDigitRed {
             get {
                 object obj = ResourceManager.GetObject("ThreeDigitRed", resourceCulture);
@@ -234,13 +240,20 @@ namespace ShoopDoup.Properties {
             }
         }
         
+        internal static System.Drawing.Bitmap TwoDigitBlue {
+            get {
+                object obj = ResourceManager.GetObject("TwoDigitBlue", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         internal static System.Drawing.Bitmap TwoDigitGreen {
             get {
                 object obj = ResourceManager.GetObject("TwoDigitGreen", resourceCulture);
-		return ((System.Drawing.Bitmap)(obj));
-		}
-	}
-
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
         internal static System.Drawing.Bitmap TwoDigitRed {
             get {
                 object obj = ResourceManager.GetObject("TwoDigitRed", resourceCulture);
