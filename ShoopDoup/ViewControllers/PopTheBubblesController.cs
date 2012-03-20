@@ -49,6 +49,7 @@ namespace ShoopDoup.ViewControllers
         private System.Windows.Controls.Image rightHandCursor;
         private System.Windows.Controls.Image timerBox;
         private System.Windows.Controls.Image scoreBox;
+        private System.Windows.Controls.Image wordBox;
         private List<Bubble> bubbles;
         private List<Boolean> selectedBubbles;
         private List<Bubble> instructionBubbles;
@@ -167,17 +168,27 @@ namespace ShoopDoup.ViewControllers
 
             TextBlock bubbleTextBlock = new TextBlock();
             bubbleTextBlock.Text = text;
-            bubbleTextBlock.Foreground = System.Windows.Media.Brushes.White;
+            bubbleTextBlock.Foreground = System.Windows.Media.Brushes.DarkGreen;
+            bubbleTextBlock.FontFamily = new System.Windows.Media.FontFamily("Arial");
             Viewbox bubbleViewBox = new Viewbox();
             bubbleViewBox.Stretch = Stretch.Uniform;
-            bubbleViewBox.Height = 100;
-            bubbleViewBox.Width = 300;
+            bubbleViewBox.Height = 70;
+            bubbleViewBox.Width = 150;
             bubbleViewBox.Child = bubbleTextBlock;
             this.associateWithLabel.Content = bubbleViewBox;
             mainCanvas.Children.Add(associateWithLabel);
-            Canvas.SetTop(associateWithLabel, 30);
-            Canvas.SetLeft(associateWithLabel, 450);
-            Canvas.SetZIndex(associateWithLabel, 4);
+            Canvas.SetTop(associateWithLabel, 14);
+            Canvas.SetLeft(associateWithLabel, 545);
+            Canvas.SetZIndex(associateWithLabel, 5);
+
+            this.wordBox = new System.Windows.Controls.Image();
+            wordBox.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.greenText);
+            wordBox.Height = 70;
+            mainCanvas.Children.Add(wordBox);
+
+            Canvas.SetTop(wordBox, 18);
+            Canvas.SetLeft(wordBox, 400);
+            Canvas.SetZIndex(wordBox, 4);
         }
 
 
@@ -287,7 +298,6 @@ namespace ShoopDoup.ViewControllers
             {
                 if (selectedBubbles[ra] != true)
                 {
-                    Console.WriteLine("REMOVED: " + bubbles[ra].isSelected);
                     mainCanvas.Children.Remove(bubbles[ra].bubble);
                     mainCanvas.Children.Remove(bubbles[ra].bubbleLabel);
                     bubbles.RemoveAt(ra);
@@ -369,10 +379,10 @@ namespace ShoopDoup.ViewControllers
 
         private void bubblePopup(object sender, EventArgs e)
         {
-            for (int i = 0; i < bubbles.Count; i++)
+            /*for (int i = 0; i < bubbles.Count; i++)
             {
                 Console.WriteLine("BUBBLE: " + i + " - " + selectedBubbles[i]);
-            }
+            }*/
 
             if (bubbles.Count < MAX_BUBBLES)
             {

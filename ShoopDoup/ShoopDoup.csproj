@@ -179,6 +179,7 @@
     <Resource Include="Assets\ThreeDigitGreen.png" />
     <Resource Include="Assets\TwoDigitGreen.png" />
     <Content Include="Assets\bobblepopwav.wav" />
+    <None Include="Assets\greenText.png" />
     <Content Include="Microsoft.Research.Kinect.dll" />
     <None Include="Resources\TrafficLaneBackGround.png" />
   </ItemGroup>
