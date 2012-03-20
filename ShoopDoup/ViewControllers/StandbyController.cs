@@ -35,14 +35,15 @@ namespace ShoopDoup.ViewControllers
 
         private Label genericIntroLabel;
         private Label instructionIntroLabel;
+        private TextBlock instructionTextBlock;
         private System.Windows.Threading.DispatcherTimer exitTimer;
 
         public StandbyController() : base()
         {
             welcomeSleepBitmap = this.toBitmapImage(ShoopDoup.Properties.Resources.WelcomeSleep);
             welcomeAttentionBitmap = this.toBitmapImage(ShoopDoup.Properties.Resources.WelcomeAttention);
-            welcomeFollowingLeftBitmap = this.toBitmapImage(ShoopDoup.Properties.Resources.WelcomeFollowing);
-            System.Drawing.Bitmap followingBitmap = ShoopDoup.Properties.Resources.WelcomeFollowing;
+            welcomeFollowingLeftBitmap = this.toBitmapImage(ShoopDoup.Properties.Resources.WelcomeFollowingArrow);
+            System.Drawing.Bitmap followingBitmap = ShoopDoup.Properties.Resources.WelcomeFollowingArrow;
             followingBitmap.RotateFlip(RotateFlipType.RotateNoneFlipX);
             welcomeFollowingRightBitmap = this.toBitmapImage(followingBitmap);
             welcomeBoredBitmap = this.toBitmapImage(ShoopDoup.Properties.Resources.WelcomeBored);
@@ -79,20 +80,22 @@ namespace ShoopDoup.ViewControllers
             genericViewbox.Stretch = Stretch.Uniform;
             genericIntroLabel.Opacity = 0;
 
-            TextBlock instructionTextBlock = new TextBlock();
+            instructionTextBlock = new TextBlock();
             Viewbox instructionViewbox = new Viewbox();
             instructionIntroLabel = new Label();
 
-            instructionIntroLabel.Height = 500;
-            instructionIntroLabel.Width = 800;
+            instructionIntroLabel.Height = 750;
+            instructionIntroLabel.Width = 750;
             instructionTextBlock.Foreground = System.Windows.Media.Brushes.Navy;
-            instructionViewbox.Height = 500;
-            instructionViewbox.Width = 800;
-            instructionTextBlock.FontSize = 50;
-            instructionViewbox.Child = instructionTextBlock;
-            instructionIntroLabel.Content = instructionViewbox;
-            instructionViewbox.Stretch = Stretch.Uniform;
+            instructionTextBlock.FontSize = 70;
+            //instructionViewbox.Child = instructionTextBlock;
+            instructionIntroLabel.FontSize = 70;
+            //instructionIntroLabel.Content = instructionViewbox;
+            instructionIntroLabel.Foreground = System.Windows.Media.Brushes.Navy;
+            instructionIntroLabel.FontSize = 100;
+            //instructionViewbox.Stretch = Stretch.Uniform;
             instructionIntroLabel.Opacity = 0;
+            instructionIntroLabel.Content = instructionTextBlock;
 
             Canvas.SetLeft(genericIntroLabel, 400);
             Canvas.SetTop(genericIntroLabel, 100);
@@ -177,7 +180,7 @@ namespace ShoopDoup.ViewControllers
                     playerActiveTime = DateTime.UtcNow;
                 }
 
-                if (state == STANDBY_STATE.Attention && (DateTime.UtcNow - playerActiveTime).Seconds > 3)
+                if (state == STANDBY_STATE.Attention && (DateTime.UtcNow - playerActiveTime).Seconds > 2)
                 {
                     state = STANDBY_STATE.Thinking;
                     //fadeTimer.IsEnabled = true;
@@ -210,8 +213,12 @@ namespace ShoopDoup.ViewControllers
 
         public void setInstructionText(String instructions)
         {
-            TextBlock contentBlock = (TextBlock)((Viewbox)instructionIntroLabel.Content).Child;
-            contentBlock.Text = instructions;
+            //TextBlock contentBlock = (TextBlock)((Viewbox)instructionIntroLabel.Content).Child;
+            instructionTextBlock.Text = instructions;
+            instructionTextBlock.TextWrapping = TextWrapping.Wrap;
+            //contentBlock.TextWrapping = TextWrapping.Wrap;
+            //((Viewbox)instructionIntroLabel.Content).Stretch = Stretch.Fill;
+
             //instructionIntroLabel.FontSize = 50;
         }
 

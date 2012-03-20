@@ -355,56 +355,27 @@ namespace NetGame.Utils
         private double airFriction = baseAirFriction;
         private int intraFrames = 1;
         private int frameCount = 0;
+        private double lastDropLocation=0;
         private bool doRandomColors = true;
         private double expandingRate = 1.0;
         private Color baseColor = Color.FromRgb(0, 0, 0);
         private PolyType polyTypes = PolyType.All;
         private Dictionary<int, int> scores = new Dictionary<int, int>();
         private DateTime gameStartTime;
+        private List<String> textLabels;
 
-        public FallingThings(int maxThings, double framerate, int intraFrames, double sceneWidth, double sceneHeight)
+        public FallingThings(int maxThings, double framerate, int intraFrames, double sceneWidth, double sceneHeight, List<String> data)
         {
             this.maxThings = maxThings;
             this.intraFrames = intraFrames;
             this.targetFrameRate = framerate * intraFrames;
+            this.textLabels = data;
             SetGravity(gravityFactor);
             sceneRect.X = sceneRect.Y = 0;
             sceneRect.Width=sceneWidth;
             sceneRect.Height = sceneHeight;
             shapeSize = sceneRect.Height * baseShapeSize / 1000.0;
             expandingRate = Math.Exp(Math.Log(6.0) / (targetFrameRate * DissolveTime));
-            labelText.Add("Lebanon");
-            labelText.Add("China");
-            labelText.Add("Israel");
-            labelText.Add("Serbia");
-            labelText.Add("France");
-            labelText.Add("Germany");
-            labelText.Add("South Africa");
-            labelText.Add("Madagascar");
-            labelText.Add("Vietnam");
-            labelText.Add("Russia");
-            labelText.Add("Iraq");
-            labelText.Add("Brazil");
-            labelText.Add("Somalia");
-            labelText.Add("Saudi Arabia");
-            labelText.Add("Italy");
-            labelText.Add("USA");
-            labelText.Add("Egypt");
-            labelText.Add("Kenya");
-            labelText.Add("Uganda");
-            labelText.Add("Vatican");
-            labelText.Add("Mongolia");
-            labelText.Add("Philippines");
-            labelText.Add("South Korea");
-            labelText.Add("North Korea");
-            labelText.Add("Poland");
-            labelText.Add("Ukraine");
-            labelText.Add("Australia");
-            labelText.Add("New Zealand");
-            labelText.Add("Japan");
-            labelText.Add("Mexico");
-            labelText.Add("Iran");
-            labelText.Add("Spain");
 
         }
 
@@ -594,6 +565,12 @@ namespace NetGame.Utils
             if (appleLocation == 0)
             {
                 dropX = rnd.NextDouble() * fDropWidth + (sceneRect.Left + sceneRect.Right - fDropWidth) / 2;
+                while(Math.Abs(dropX-lastDropLocation)<150)
+                {
+                    dropX = rnd.NextDouble() * fDropWidth + (sceneRect.Left + sceneRect.Right - fDropWidth) / 2;
+                }
+                lastDropLocation = dropX;
+
             }
             else
             {
@@ -627,17 +604,17 @@ namespace NetGame.Utils
 
             if (word == null)
             {
-                int randomLabel = rnd.Next(0, labelText.Count - 1);
-                 text = labelText[randomLabel];
+                int randomLabel = rnd.Next(0, textLabels.Count - 1);
+                 text = textLabels[randomLabel];
 
                 while (usedLabels.Contains(text))
                 {
-                    if (usedLabels.Count > labelText.Count - 5)
+                    if (usedLabels.Count > textLabels.Count - 5)
                     {
                         usedLabels.Clear();
                     }
-                    randomLabel = rnd.Next(0, labelText.Count - 1);
-                    text = labelText[randomLabel];
+                    randomLabel = rnd.Next(0, textLabels.Count - 1);
+                    text = textLabels[randomLabel];
                 }
                 usedLabels.Add(text);
             }
@@ -682,8 +659,8 @@ namespace NetGame.Utils
 
             System.Windows.Controls.Image apple = new System.Windows.Controls.Image();
             apple.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.apple);
-            apple.SetValue(Canvas.LeftProperty, center.X - size);
-            apple.SetValue(Canvas.TopProperty, center.Y - size);
+            apple.SetValue(Canvas.LeftProperty, center.X);
+            apple.SetValue(Canvas.TopProperty, center.Y);
             apple.Height = 150;
             apples.Add(apple);
 
@@ -728,9 +705,9 @@ namespace NetGame.Utils
                 if (thing.state != ThingState.Dissolving)
                 {
                     apple.SetValue(Canvas.LeftProperty, thing.center.X - thing.size);
-                    apple.SetValue(Canvas.TopProperty, thing.center.Y - thing.size);
+                    apple.SetValue(Canvas.TopProperty, thing.center.Y-25);
                     label.SetValue(Canvas.LeftProperty, thing.center.X - thing.size*.84);
-                    label.SetValue(Canvas.TopProperty, thing.center.Y - thing.size*.84);
+                    label.SetValue(Canvas.TopProperty, thing.center.Y);
                     label.SetValue(Canvas.ZIndexProperty, 100);
                 }
 

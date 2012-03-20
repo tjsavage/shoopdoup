@@ -57,12 +57,16 @@ namespace ShoopDoup.ViewControllers
         private System.Windows.Threading.DispatcherTimer exitTimer;
         private System.Windows.Threading.DispatcherTimer userExitedTimer;
         private System.Windows.Threading.DispatcherTimer introCarAnimatorTimer;
+        private System.Windows.Threading.DispatcherTimer addNewCarTimer;
 
         private System.Windows.Threading.DispatcherTimer introCarTimer;
         private int numIntroCarTimerTicks = 0;
 
         private System.Windows.Controls.Image leftHandCursor;
         private System.Windows.Controls.Image rightHandCursor;
+
+        private System.Windows.Controls.Image baseLabelBox;
+        private System.Windows.Controls.Image scoreBox;
 
         private int numFaderTicks = 0;
 
@@ -91,6 +95,12 @@ namespace ShoopDoup.ViewControllers
 
         private int[] laneHeights = {125, 250, 375, 500, 625};
 
+        private System.Windows.Controls.Image ShoopDoupSpeakingImage;
+
+        private bool lastUpdateWasWithSkeleton = false;
+
+        private System.Media.SoundPlayer sp;
+
 
         public CarStopperController(Minigame game)
         {
@@ -98,6 +108,7 @@ namespace ShoopDoup.ViewControllers
             minigame = game;
             introTitle = minigame.getTitle();
             introDescription = minigame.getDescription();
+            this.sp = new System.Media.SoundPlayer(ShoopDoup.Properties.Resources.carexplosion);
 
             carDictionary = new Dictionary<String, Car>();
 
@@ -130,7 +141,7 @@ namespace ShoopDoup.ViewControllers
 
             this.exitTimer = new System.Windows.Threading.DispatcherTimer();
             this.exitTimer.Tick += controllerFinished;
-            this.exitTimer.Interval = TimeSpan.FromMilliseconds(6000);
+            this.exitTimer.Interval = TimeSpan.FromMilliseconds(10000);
 
             this.userExitedTimer = new System.Windows.Threading.DispatcherTimer();
             this.userExitedTimer.Tick += controllerFinished;
@@ -143,6 +154,10 @@ namespace ShoopDoup.ViewControllers
             this.introCarAnimatorTimer = new System.Windows.Threading.DispatcherTimer();
             this.introCarAnimatorTimer.Tick += moveCars;
             this.introCarAnimatorTimer.Interval = TimeSpan.FromMilliseconds(20);
+
+            this.addNewCarTimer = new System.Windows.Threading.DispatcherTimer();
+            this.addNewCarTimer.Tick += addNewCar;
+            this.addNewCarTimer.Interval = TimeSpan.FromMilliseconds(4000);
 
             rightHandCursor = new System.Windows.Controls.Image();
             rightHandCursor.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.BlueHandCursor);
@@ -165,6 +180,20 @@ namespace ShoopDoup.ViewControllers
             qrCode.Height = 248;
             qrCode.Width = 248;
 
+            baseLabelBox = new System.Windows.Controls.Image();
+            baseLabelBox.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.blueText);
+
+            scoreBox = new System.Windows.Controls.Image();
+            scoreBox.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.TwoDigitBlue);
+            scoreBox.Height = 100;
+            scoreBox.Width = 200;
+
+            ShoopDoupSpeakingImage = new System.Windows.Controls.Image();
+            ShoopDoupSpeakingImage.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.ThinkingUpgame);
+            ShoopDoupSpeakingImage.Width = 1280;
+            ShoopDoupSpeakingImage.Height = 800;
+            ShoopDoupSpeakingImage.Opacity = 0;
+
             rightHandCursor.Opacity = 0;
             leftHandCursor.Opacity = 0;
 
@@ -178,12 +207,17 @@ namespace ShoopDoup.ViewControllers
             mainCanvas.Children.Add(rightHandCursor);
             mainCanvas.Children.Add(leftHandCursor);
             mainCanvas.Children.Add(trafficBackgroundImage);
+            mainCanvas.Children.Add(scoreBox);
 
             Canvas.SetZIndex(rightHandCursor, 4);
             Canvas.SetZIndex(leftHandCursor, 4);
             Canvas.SetLeft(trafficBackgroundImage, 0);
             Canvas.SetTop(trafficBackgroundImage, 0);
-            Canvas.SetZIndex(trafficBackgroundImage, 0);
+            Canvas.SetZIndex(trafficBackgroundImage, -5);
+
+            Canvas.SetZIndex(scoreBox, -1);
+            Canvas.SetLeft(scoreBox, 40);
+            Canvas.SetTop(scoreBox, 8);
 
             runIntro();
         }
@@ -224,24 +258,26 @@ namespace ShoopDoup.ViewControllers
             ((TextBlock)instructionLabel.Content).Opacity = 0;
 
             exitLabel.Content = new TextBlock();
-            ((TextBlock)(exitLabel.Content)).Text = "Thanks for playing! \n Your input is invaluable in creating accurate machine learning algorithms\n To keep playing, scan the QR code";
+            ((TextBlock)(exitLabel.Content)).Text = "Thanks for playing! \n Your input is invaluable in creating accurate machine learning algorithms.\n To keep playing, scan the QR code";
             ((TextBlock)(exitLabel.Content)).TextWrapping = 0;
             exitLabel.MaxWidth = 500;
             exitLabel.FontSize = 40;
             exitLabel.VerticalAlignment = VerticalAlignment.Center;
             exitLabel.HorizontalAlignment = HorizontalAlignment.Center;
-            Canvas.SetLeft(exitLabel, 200);
-            Canvas.SetTop(exitLabel, 200);
+            Canvas.SetLeft(exitLabel, 400);
+            Canvas.SetTop(exitLabel, 100);
             ((TextBlock)exitLabel.Content).Opacity = 0;
 
             scoreLabel.Content = new TextBlock();
-            ((TextBlock)(scoreLabel.Content)).Text = "Cars Stopped: 0";
+            ((TextBlock)(scoreLabel.Content)).Text = "0";
             ((TextBlock)(scoreLabel.Content)).Foreground = System.Windows.Media.Brushes.Navy;
             ((TextBlock)(scoreLabel.Content)).TextWrapping = 0;
-            scoreLabel.MaxWidth = 500;
-            scoreLabel.FontSize = 30;
-            Canvas.SetLeft(scoreLabel, 1000);
-            Canvas.SetTop(scoreLabel, 10);
+            ((TextBlock)(scoreLabel.Content)).FontWeight = FontWeights.Bold;
+            ((TextBlock)(scoreLabel.Content)).FontSize = 40;
+            scoreLabel.MaxWidth = 100;
+            scoreLabel.FontSize = 40;
+            Canvas.SetLeft(scoreLabel, 110);
+            Canvas.SetTop(scoreLabel, 25);
             Canvas.SetZIndex(scoreLabel, 10);
             ((TextBlock)scoreLabel.Content).Opacity = 0;
 
@@ -249,6 +285,7 @@ namespace ShoopDoup.ViewControllers
             ((TextBlock)(baseLabel.Content)).Text = baseItem;
             ((TextBlock)(baseLabel.Content)).Foreground = System.Windows.Media.Brushes.Navy;
             ((TextBlock)(baseLabel.Content)).TextWrapping = 0;
+            ((TextBlock)(baseLabel.Content)).FontWeight = FontWeights.Bold;
             baseLabel.MaxWidth = 500;
             baseLabel.FontSize = 50;
             Canvas.SetLeft(baseLabel, 400);
@@ -263,6 +300,8 @@ namespace ShoopDoup.ViewControllers
         public override void updateSkeleton(SkeletonData skeleton)
         {
             highlightedHandBaseDepth = skeleton.Joints[JointID.Spine].ScaleTo(1200, 800, .5f, .5f).Position.Z;
+
+            lastUpdateWasWithSkeleton = true;
 
             if (userExitedTimer.IsEnabled)
             {
@@ -318,6 +357,7 @@ namespace ShoopDoup.ViewControllers
                             //if (curTextBlock.Foreground == System.Windows.Media.Brushes.Yellow)
                             {
                                 toRemove.Add(key);
+                                sp.Play();
                             }
                             /*else
                             {
@@ -339,6 +379,7 @@ namespace ShoopDoup.ViewControllers
                             //if (curTextBlock.Foreground == System.Windows.Media.Brushes.Yellow)
                             {
                                 toRemove.Add(key);
+                                sp.Play();
                             }
                             /*else
                             {
@@ -364,10 +405,16 @@ namespace ShoopDoup.ViewControllers
                     carDictionary.Remove(toRemove[i]);
                     carsStopped++;
                     currentcarDataIndex++;
-                    ((TextBlock)scoreLabel.Content).Text = "Cars Stopped: " + carsStopped;
-                    addNewCar();
+                    ((TextBlock)scoreLabel.Content).Text = "" + carsStopped;
+                    //addNewCar();
 
                 }
+
+                if (carDictionary.Count == 0 && currentcarDataIndex >= minigame.getData().Count)
+                {
+                    moveToNextState(null, null);
+                }
+
                 /*else
                 {
                     rightHandCursor.Opacity = .68;
@@ -376,9 +423,20 @@ namespace ShoopDoup.ViewControllers
             }
         }
 
+        private void addNewCar(object o, EventArgs e)
+        {
+            currentcarDataIndex++;
+            addNewCar();
+        }
+
         public override void updateWithoutSkeleton()
         {
-            userExitedTimer.Start();
+            if (lastUpdateWasWithSkeleton)
+            {
+                userExitedTimer.Start();
+            }
+
+            lastUpdateWasWithSkeleton = false;
         }
 
         private void moveToNextState(object sender, EventArgs e)
@@ -390,14 +448,20 @@ namespace ShoopDoup.ViewControllers
 
             if (state == GAME_STATE.Playing)
             {
+                addNewCarTimer.Start();
                 //drawGrid();
             }
             if (state == GAME_STATE.Exit)
             {
                 qrCode.Opacity = 0;
+                mainCanvas.Children.Add(ShoopDoupSpeakingImage);
                 mainCanvas.Children.Add(qrCode);
                 Canvas.SetLeft(qrCode, 800);
-                Canvas.SetTop(qrCode, 500);
+                Canvas.SetTop(qrCode, 400);
+                Canvas.SetLeft(ShoopDoupSpeakingImage, 0);
+                Canvas.SetTop(ShoopDoupSpeakingImage, 0);
+                Canvas.SetZIndex(ShoopDoupSpeakingImage, 0);
+                Canvas.SetZIndex(exitLabel, 1);
                 this.exitTimer.Start();
             }
         }
@@ -432,6 +496,7 @@ namespace ShoopDoup.ViewControllers
                 trafficBackgroundImage.Opacity -= .03;
                 ((TextBlock)exitLabel.Content).Opacity += .04;
                 qrCode.Opacity += .04;
+                ShoopDoupSpeakingImage.Opacity += .04;
                 ((TextBlock)scoreLabel.Content).Opacity -= .04;
                 ((TextBlock)baseLabel.Content).Opacity -= .04;
             }
@@ -456,48 +521,18 @@ namespace ShoopDoup.ViewControllers
                 }
                 else
                 {
-                    transitionTimer.Start();
+                    //transitionTimer.Start();
                 }
             }
         }
 
         private void addNewCar()
         {
-
-            double randomY = laneHeights[randomGen.Next(4)];
-
-
-            addCarAt(-300, randomY, minigame.getData().ElementAt(currentcarDataIndex).getElementValue(), carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), true);
-            /*carBitmapImage = this.toBitmapImage(carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)));
-            carImage = new System.Windows.Controls.Image();
-            carImage.Source = carBitmapImage;
-            carImage.MaxHeight = 100;
-            carImage.MaxWidth = 200;
-
-            mainCanvas.Children.Add(carImage);
-
-            carLabel = new Label();
-            TextBlock carTextBlock = new TextBlock();
-            Viewbox carViewbox = new Viewbox();
-            carViewbox.Stretch = Stretch.Uniform;
-            carTextBlock.Text = minigame.getData().ElementAt(currentcarDataIndex).getElementValue();
-            carViewbox.Height = 100;
-            carViewbox.Width = 200;
-            carViewbox.Child = carTextBlock;
-            carLabel.Content = carViewbox;
-
-
-            int randomY = laneHeights[randomGen.Next(4)];
-            Console.WriteLine(randomY);
-
-            Canvas.SetLeft(carLabel, 0);
-            Canvas.SetTop(carLabel, randomY);
-            Canvas.SetLeft(carImage, 0);
-            Canvas.SetTop(carImage, randomY + 10);
-            mainCanvas.Children.Add(carLabel);*/
-
-            //Canvas.SetZIndex(carLabel, 2);
-            //Canvas.SetZIndex(carImage, Canvas.GetZIndex(carLabel) - 1);
+            if (currentcarDataIndex < minigame.getData().Count)
+            {
+                double randomY = laneHeights[randomGen.Next(4)];
+                addCarAt(-300, randomY, minigame.getData().ElementAt(currentcarDataIndex).getElementValue(), carBitmaps.ElementAt(randomGen.Next(0, carBitmaps.Count)), true);
+            }
         }
 
         private void removeCar(String key)
@@ -516,8 +551,17 @@ namespace ShoopDoup.ViewControllers
             transitionTimer.Stop();
             fadeTimer.Stop();
             userExitedTimer.Stop();
-            moveToNextState(null, null);
-            //ReturnToStandbyController();
+            addNewCarTimer.Stop();
+
+            if (state != GAME_STATE.Exit)
+            {
+                state = GAME_STATE.Playing;
+                moveToNextState(null, null);
+            }
+            else
+            {
+                ReturnToStandbyController();
+            }
         }
 
         private void runIntro()
@@ -580,6 +624,7 @@ namespace ShoopDoup.ViewControllers
 
             carTextBlock.Text = label;
             carTextBlock.Foreground = System.Windows.Media.Brushes.Navy;
+            carTextBlock.FontWeight = FontWeights.Bold;
             carViewbox.Height = 100;
             carViewbox.Width = 200;
             carViewbox.Child = carTextBlock;
@@ -626,11 +671,11 @@ namespace ShoopDoup.ViewControllers
             {
                 carDictionary.Remove(toRemove[i]);
 
-                if (state == GAME_STATE.Playing)
+                /*if (state == GAME_STATE.Playing)
                 {
                     currentcarDataIndex++;
                     addNewCar();
-                }
+                }*/
             }
         }
 

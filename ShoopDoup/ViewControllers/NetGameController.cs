@@ -27,7 +27,7 @@ namespace ShoopDoup.ViewControllers
         #region Private State
         const int TimerResolution = 2;  // ms
         const int NumIntraFrames = 3;
-        const int MaxShapes = 7;
+        const int MaxShapes = 4;
         const double MaxFramerate = 70;
         const double MinFramerate = 15;
         const double MinShapeSize = 12;
@@ -66,38 +66,40 @@ namespace ShoopDoup.ViewControllers
         private System.Windows.Controls.Image background;
         private System.Windows.Controls.Image timerOutline;
         private System.Windows.Controls.Image scoreOutline;
+        private System.Windows.Controls.Image associationOutline;
 
         private System.Windows.Controls.Label label;
         private System.Windows.Shapes.Line myNet;
-        private System.Windows.Shapes.Rectangle startGameRect;
         private System.Windows.Controls.Canvas playfield;
+        private Random randomGen = new Random();
         private Minigame minigame;
 
         private enum STANDBY_STATE { Instructions, Playing, Exiting };
-        private BitmapImage instructionsBitmap;
 
         private int timeLeft;
         private Label timerLabel;
         private int score;
-        private Label scoreLabel;
+        private Label scoreLabel = new Label();
+        private Label associationLabel;
         private System.Windows.Threading.DispatcherTimer gameTimer;
+        private System.Windows.Threading.DispatcherTimer userExitedTimer;
         private System.Windows.Threading.DispatcherTimer instructionTimer;
         private int secondsLeft;
         private bool instructing;
         private int run;
+        private List<String> textLabels=new List<String>();
 
         #endregion Private State
 
 
         public NetGameController(Minigame game) : base()
         {
-            minigame = game;
+            this.minigame = game;
             start();
         }
             
         public override void start() {
             currentImage = new System.Windows.Controls.Image();
-            //state = STANDBY_STATE.Instructions;
             currentImage.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.ThinkingUpgame);
             currentImage.Width = 1280;
             currentImage.Height = 800;
@@ -182,13 +184,27 @@ namespace ShoopDoup.ViewControllers
             label.Visibility = System.Windows.Visibility.Hidden;
             currentImage.Visibility = System.Windows.Visibility.Hidden;
 
-            fallingThings = new FallingThings(MaxShapes, targetFramerate, NumIntraFrames, 1440, 900);
+            String text;
+
+            foreach (ShoopDoup.Models.DataObject obj in this.minigame.getData())
+            {
+                if (obj.getElementValue() != null)
+                {
+                    textLabels.Add(obj.getElementValue().ToLower());
+                }
+            }
+
+            fallingThings = new FallingThings(MaxShapes, targetFramerate, NumIntraFrames, 1440, 900,textLabels);
 
             fallingThings.SetGravity(dropGravity);
             fallingThings.SetDropRate(dropRate);
             fallingThings.SetSize(dropSize);
             fallingThings.SetPolies(PolyType.All);
             fallingThings.SetGameMode(FallingThings.GameMode.Off);
+
+            this.userExitedTimer = new System.Windows.Threading.DispatcherTimer();
+            this.userExitedTimer.Tick += controllerFinished;
+            this.userExitedTimer.Interval = TimeSpan.FromMilliseconds(2000);
 
             Win32Timer.timeBeginPeriod(TimerResolution);
             var gameThread = new Thread(GameThread);
@@ -209,6 +225,11 @@ namespace ShoopDoup.ViewControllers
                 leftHandCursor.Visibility = System.Windows.Visibility.Visible;
             }
 
+            if (userExitedTimer.IsEnabled)
+            {
+                userExitedTimer.Stop();
+            }
+
             Canvas.SetTop(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(displayWidth, displayHeight, .5f, .5f).Position.Y);
             Canvas.SetLeft(rightHandCursor, skeleton.Joints[JointID.HandRight].ScaleTo(displayWidth, displayHeight, .5f, .5f).Position.X);
             Canvas.SetTop(leftHandCursor, skeleton.Joints[JointID.HandLeft].ScaleTo(displayWidth, displayHeight, .5f, .5f).Position.Y);
@@ -222,7 +243,7 @@ namespace ShoopDoup.ViewControllers
         
         public override void updateWithoutSkeleton()
         {
-            ReturnToStandbyController();
+            userExitedTimer.Start();
         }
 
         private void UpdatePlayfieldSize()
@@ -259,6 +280,7 @@ namespace ShoopDoup.ViewControllers
             timerLabel.Foreground = timerColor;
             timerLabel.Content = ":"+timeLeft;
             timerLabel.FontFamily = new FontFamily("Arial");
+            timerLabel.FontWeight = FontWeights.Bold;
             mainCanvas.Children.Add(timerLabel);
             Canvas.SetTop(timerLabel, 22);
             Canvas.SetLeft(timerLabel, 175);
@@ -297,6 +319,7 @@ namespace ShoopDoup.ViewControllers
         private void instructUser(Object sender, EventArgs e)
         {
             secondsLeft--;
+            
             if (secondsLeft == 0 && run<7)
             {
                 run++;
@@ -304,13 +327,23 @@ namespace ShoopDoup.ViewControllers
                 this.instructionTimer.Stop();
                 StartInstructionTimer(1);
             }
-            else if(secondsLeft==0)
+            else if(secondsLeft==0 && run<9)
             {
                 run++;
                 ShowInstructions(playfield.Children, run);
                 this.instructionTimer.Stop();
-                StartInstructionTimer(9);
+                if (instructing)
+                {
+                    StartInstructionTimer(8);
+                }
             }
+            else if (secondsLeft == 0 && run == 9)
+            {
+                run++;
+                ShowInstructions(playfield.Children, run);
+                this.instructionTimer.Stop();
+            }
+           
         }
 
         private void countdown(object sender, EventArgs e)
@@ -320,20 +353,32 @@ namespace ShoopDoup.ViewControllers
             if (timeLeft == 0)
             {
                 gameTimer.Stop();
-                ReturnToStandbyController();
+                EndGame();
             }
+        }
+
+        private void controllerFinished(object o, EventArgs e)
+        {
+            userExitedTimer.Stop();
+            ReturnToStandbyController();
+        }
+
+        private void EndGame()
+        {
+            instructing = true;
+            StartInstructionTimer(7);
         }
 
         private void LoadScore()
         {
-            score = 8575;
-            scoreLabel = new Label();
-            scoreLabel.Content = score;
+            score = 0;
+            scoreLabel.Content = "000"+score;
             scoreLabel.FontSize = 40;
             SolidColorBrush timerColor = new SolidColorBrush();
             timerColor.Color = Color.FromArgb(255, 207, 20, 20);
             scoreLabel.Foreground = timerColor;
             scoreLabel.FontFamily = new FontFamily("Arial");
+            scoreLabel.FontWeight = FontWeights.Bold;
             mainCanvas.Children.Add(scoreLabel);
             Canvas.SetTop(scoreLabel, 22);
             Canvas.SetLeft(scoreLabel, 40);
@@ -353,10 +398,44 @@ namespace ShoopDoup.ViewControllers
 
         }
 
+        private void LoadAssociation()
+        {
+            this.associationLabel = new Label();
+            associationLabel.FontSize = 40;
+            SolidColorBrush timerColor = new SolidColorBrush();
+            timerColor.Color = Color.FromArgb(255, 207, 20, 20);
+            associationLabel.Foreground = timerColor;
+            int minigameRandom = randomGen.Next(0, minigame.getData().Count - 1);
+            String text = minigame.getData()[minigameRandom].getElementValue().ToUpper();
+            associationLabel.Content = text;
+            int width = text.Length * 26+30;
+
+            associationLabel.FontFamily = new FontFamily("Arial");
+            associationLabel.FontWeight = FontWeights.Bold;
+            associationLabel.Width = width;
+
+            mainCanvas.Children.Add(associationLabel);
+            Canvas.SetTop(associationLabel, 22);
+            Canvas.SetLeft(associationLabel, 640-associationLabel.Width/2);
+            Canvas.SetZIndex(associationLabel, 301);
+
+            associationOutline = new System.Windows.Controls.Image();
+            associationOutline.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.redText);
+            //210x131
+            //associationOutline.Width = 300;
+            associationOutline.Height = 65;
+            mainCanvas.Children.Add(associationOutline);
+
+            timerOutline.Visibility = System.Windows.Visibility.Visible;
+            Canvas.SetZIndex(associationOutline, 300);
+            Canvas.SetTop(associationOutline, 20);
+            Canvas.SetLeft(associationOutline, 415);
+        }
+
         private void LoadBackground()
         {
             background = new System.Windows.Controls.Image();
-            background.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.backgroundTree);
+            background.Source = this.toBitmapImage(ShoopDoup.Properties.Resources.newBackgroundTree);
             background.Width = 1280;
             background.Height = 800;
             mainCanvas.Children.Add(background);
@@ -373,6 +452,22 @@ namespace ShoopDoup.ViewControllers
             Canvas.SetLeft(leaves, 0);
             Canvas.SetZIndex(leaves, 200);
 
+
+        }
+
+        private void ShowGoodbye()
+        {
+            Label endLabel = new Label();
+            endLabel.FontSize = 50;
+            SolidColorBrush timerColor = new SolidColorBrush();
+            timerColor.Color = Color.FromArgb(255, 207, 20, 20);
+            endLabel.Foreground = timerColor;
+            endLabel.Content = "Thanks For Playing!";
+            endLabel.FontFamily = new FontFamily("Arial");
+            mainCanvas.Children.Add(endLabel);
+            Canvas.SetTop(endLabel, 350);
+            Canvas.SetLeft(endLabel, 450);
+            Canvas.SetZIndex(endLabel, 301);
 
         }
 
@@ -410,8 +505,24 @@ namespace ShoopDoup.ViewControllers
                     SetTimerLabel();
                     StartGameTimer();
                     LoadScore();
+                    LoadAssociation();
                     instructing = false;
                     this.instructionTimer.Stop();
+                    break;
+
+                case 10:
+                    /*timerLabel.Visibility = System.Windows.Visibility.Hidden;
+                    timerOutline.Visibility = System.Windows.Visibility.Hidden;
+                    scoreLabel.Visibility = System.Windows.Visibility.Hidden;
+                    scoreOutline.Visibility = System.Windows.Visibility.Hidden;
+                    associationLabel.Visibility = System.Windows.Visibility.Hidden;
+                    associationOutline.Visibility = System.Windows.Visibility.Hidden;
+                    ShowGoodbye();*/
+                    ReturnToStandbyController();
+                    break;
+
+                case 11:
+                    ReturnToStandbyController();
                     break;
 
                 default:
@@ -488,9 +599,25 @@ namespace ShoopDoup.ViewControllers
             for (int i = 0; i < NumIntraFrames; ++i)
             {
                 HitType hit = fallingThings.LookForHits(myNet,1);
-                if (hit != null)
+                if (hit!= HitType.None)
                 {
-
+                    score = score + 50;
+                    if (score < 10)
+                    {
+                        scoreLabel.Content = "000" + score;
+                    }
+                    else if (score < 100)
+                    {
+                        scoreLabel.Content = "00" + score;
+                    }
+                    else if (score < 1000)
+                    {
+                        scoreLabel.Content = "0" + score;
+                    }
+                    else
+                    {
+                        scoreLabel.Content = "" + score;
+                    }
                 }
                 fallingThings.AdvanceFrame(playfield.Children,instructing);
 

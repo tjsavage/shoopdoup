@@ -11,13 +11,17 @@ namespace ShoopDoup
     class MinigameFactory
     {
         private ServerConnector sc;
+        private Dictionary<MINIGAME_TYPE, List<Minigame>> minigameDictionary;
         private List<Minigame> minigames;
         private MINIGAME_TYPE[] types = (MINIGAME_TYPE[])Enum.GetValues(typeof(MINIGAME_TYPE));
         public MainWindow mainController;
 
+        private Random randomGen = new Random();
+
         public MinigameFactory()
         {
             minigames = new List<Minigame>();
+            minigameDictionary = new Dictionary<MINIGAME_TYPE, List<Minigame>>();
             sc = new ServerConnector();
             preloadGames();
         }
@@ -36,23 +40,40 @@ namespace ShoopDoup
         {
             for (int i = 0; i < types.Length; i++)
             {
-                JObject projectTypeResult = sc.makeRequest("projectType", types[i].ToString(), "");
+                JObject projectTypeResult = sc.makeRequest("projectType", types[i].ToString(), true, "");
 
                 if (projectTypeResult == null) continue;
-              
-                String projectId = (String)projectTypeResult["response"]["projectId"];
+
+                Newtonsoft.Json.Linq.JToken[] jsonArray = projectTypeResult["response"].ToArray();
+
+                for (int j = 0; j < jsonArray.Count(); j++)
+                {
+                    String projectId = (String)jsonArray[j]["projectId"];
+
+                    JObject projectIdResult = sc.makeRequest("projectId", "", projectId);
+
+                    addNewMinigame(projectIdResult, types[i], (String)jsonArray[j]["title"], (String)jsonArray[j]["description"]);
+                }
+                /*String projectId = (String)projectTypeResult["response"]["projectId"];
 
                 JObject projectIdResult = sc.makeRequest("projectId", "", projectId);
-                addNewMinigame(projectIdResult, types[i], (String)projectTypeResult["response"]["title"], (String)projectTypeResult["response"]["description"]);
+                addNewMinigame(projectIdResult, types[i], (String)projectTypeResult["response"]["title"], (String)projectTypeResult["response"]["description"]);*/
             }
+
+            Console.WriteLine(minigameDictionary.ToString());
 
         }
 
         private void addNewMinigame(JObject projectIdResult, MINIGAME_TYPE type, String title, String description)
         {
             Minigame mg = new Minigame(projectIdResult, type, title, description);
-            //mg.getController().parentController = mainController;
-            minigames.Add(mg);
+
+            if(!minigameDictionary.Keys.Contains(type))
+            {
+                minigameDictionary[type] = new List<Minigame>();
+            }
+
+            minigameDictionary[type].Add(mg);
         }
 
         /*public Minigame getDefaultMinigame()
@@ -65,12 +86,12 @@ namespace ShoopDoup
 
         public Minigame getMinigameOfType(MINIGAME_TYPE type)
         {
-            for(int i = 0; i < minigames.Count; i++)
+            if (minigameDictionary[type] != null)
             {
-                if(minigames[i].getType() == type)
-                {
-                    return minigames[i];
-                }
+                int numGames = minigameDictionary[type].Count;
+                int randomNum = randomGen.Next(0, numGames);
+
+                return minigameDictionary[type][randomNum];
             }
 
             return null;
