@@ -35,6 +35,7 @@ namespace ShoopDoup.ViewControllers
 
         private Label genericIntroLabel;
         private Label instructionIntroLabel;
+        private TextBlock instructionTextBlock;
         private System.Windows.Threading.DispatcherTimer exitTimer;
 
         public StandbyController() : base()
@@ -79,18 +80,22 @@ namespace ShoopDoup.ViewControllers
             genericViewbox.Stretch = Stretch.Uniform;
             genericIntroLabel.Opacity = 0;
 
-            TextBlock instructionTextBlock = new TextBlock();
+            instructionTextBlock = new TextBlock();
             Viewbox instructionViewbox = new Viewbox();
             instructionIntroLabel = new Label();
 
             instructionIntroLabel.Height = 750;
             instructionIntroLabel.Width = 750;
             instructionTextBlock.Foreground = System.Windows.Media.Brushes.Navy;
-            instructionTextBlock.FontSize = 60;
-            instructionViewbox.Child = instructionTextBlock;
-            instructionIntroLabel.Content = instructionViewbox;
+            instructionTextBlock.FontSize = 70;
+            //instructionViewbox.Child = instructionTextBlock;
+            instructionIntroLabel.FontSize = 70;
+            //instructionIntroLabel.Content = instructionViewbox;
+            instructionIntroLabel.Foreground = System.Windows.Media.Brushes.Navy;
+            instructionIntroLabel.FontSize = 100;
             //instructionViewbox.Stretch = Stretch.Uniform;
             instructionIntroLabel.Opacity = 0;
+            instructionIntroLabel.Content = instructionTextBlock;
 
             Canvas.SetLeft(genericIntroLabel, 400);
             Canvas.SetTop(genericIntroLabel, 100);
@@ -208,9 +213,10 @@ namespace ShoopDoup.ViewControllers
 
         public void setInstructionText(String instructions)
         {
-            TextBlock contentBlock = (TextBlock)((Viewbox)instructionIntroLabel.Content).Child;
-            contentBlock.Text = instructions;
-            contentBlock.TextWrapping = TextWrapping.Wrap;
+            //TextBlock contentBlock = (TextBlock)((Viewbox)instructionIntroLabel.Content).Child;
+            instructionTextBlock.Text = instructions;
+            instructionTextBlock.TextWrapping = TextWrapping.Wrap;
+            //contentBlock.TextWrapping = TextWrapping.Wrap;
             //((Viewbox)instructionIntroLabel.Content).Stretch = Stretch.Fill;
 
             //instructionIntroLabel.FontSize = 50;
