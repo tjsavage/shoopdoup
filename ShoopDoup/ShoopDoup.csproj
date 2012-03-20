@@ -160,6 +160,7 @@
     <Resource Include="Assets\CarStopperTruck.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\WelcomeFollowingArrow.png" />
     <None Include="Resources\newBackgroundTree.png" />
     <None Include="Resources\redText %281%29.png" />
     <None Include="Resources\TwoDigitBlue.png" />
@@ -184,6 +185,7 @@
     <Resource Include="Assets\ThreeDigitGreen.png" />
     <Resource Include="Assets\TwoDigitGreen.png" />
     <Content Include="Assets\bobblepopwav.wav" />
+    <None Include="bomb-02.wav" />
     <Content Include="Microsoft.Research.Kinect.dll" />
     <None Include="Resources\TrafficLaneBackGround.png" />
   </ItemGroup>

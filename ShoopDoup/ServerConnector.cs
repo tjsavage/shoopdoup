@@ -17,8 +17,13 @@ namespace ShoopDoup
             url = "http://www.tomhschmidt.com/cs247/api.php";
         }
 
-
         public JObject makeRequest(String requestType, String projectType, String projectId)
+        {
+            return makeRequest(requestType, projectType, false, projectId);
+        }
+
+
+        public JObject makeRequest(String requestType, String projectType, bool fetchAll, String projectId)
         {
             StringBuilder sb = new StringBuilder();
             byte[] buf = new byte[8192];
@@ -27,7 +32,14 @@ namespace ShoopDoup
 
             if (requestType == "projectType")
             {
-                request = (HttpWebRequest)WebRequest.Create(url + "?projectType=" + projectType);
+                if (fetchAll)
+                {
+                    request = (HttpWebRequest)WebRequest.Create(url + "?projectType=" + projectType + "&fetchAll=true");
+                }
+                else
+                {
+                    request = (HttpWebRequest)WebRequest.Create(url + "?projectType=" + projectType);
+                }
             }
             else if (requestType == "projectId")
             {

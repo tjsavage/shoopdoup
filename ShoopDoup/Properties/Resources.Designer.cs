@@ -108,6 +108,12 @@ namespace ShoopDoup.Properties {
             }
         }
         
+        internal static System.IO.UnmanagedMemoryStream carexplosion {
+            get {
+                return ResourceManager.GetStream("carexplosion", resourceCulture);
+            }
+        }
+        
         internal static System.Drawing.Bitmap CarStopperBus {
             get {
                 object obj = ResourceManager.GetObject("CarStopperBus", resourceCulture);
@@ -286,6 +292,13 @@ namespace ShoopDoup.Properties {
         internal static System.Drawing.Bitmap WelcomeFollowing {
             get {
                 object obj = ResourceManager.GetObject("WelcomeFollowing", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        internal static System.Drawing.Bitmap WelcomeFollowingArrow {
+            get {
+                object obj = ResourceManager.GetObject("WelcomeFollowingArrow", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
